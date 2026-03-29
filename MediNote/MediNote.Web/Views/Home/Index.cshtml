@@ -1,8 +1,104 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container mt-4">
+    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+        <div class="container-fluid py-4">
+            <h1 class="display-5 fw-bold">Welcome to MediNote</h1>
+            <p class="col-md-10 fs-5">
+                MediNote is a web-based medical appointment management system designed to help
+                patients, doctors, and administrators manage scheduling more efficiently.
+            </p>
+            <p class="col-md-10">
+                The system supports appointment booking, doctor availability management,
+                approval and rejection of requests, and appointment rescheduling.
+            </p>
+            <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-primary btn-lg">
+                Go to Doctor Schedule
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    Doctor Features
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Manage the doctor workflow</h5>
+                    <p class="card-text">
+                        View schedules, manage availability, review pending appointments,
+                        and reschedule patient visits.
+                    </p>
+                    <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-outline-primary btn-sm me-2">
+                        Schedule
+                    </a>
+                    <a asp-controller="Doctor" asp-action="ManageAvailability" class="btn btn-outline-primary btn-sm">
+                        Availability
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    Patient Features
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Support patient appointment needs</h5>
+                    <p class="card-text">
+                        Patients can register, log in, request appointments, submit symptoms,
+                        and track their appointment status.
+                    </p>
+                    <button class="btn btn-outline-success btn-sm" disabled>
+                        Patient Module Coming Soon
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header bg-dark text-white">
+                    Admin Features
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">System administration tools</h5>
+                    <p class="card-text">
+                        Administrators manage users, assign roles, configure system settings,
+                        and review reports.
+                    </p>
+                    <button class="btn btn-outline-dark btn-sm" disabled>
+                        Admin Module Coming Soon
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4 g-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    Quick Navigation
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-outline-secondary">
+                            Doctor Schedule
+                        </a>
+                        <a asp-controller="Doctor" asp-action="PendingAppointments" class="btn btn-outline-secondary">
+                            Pending Appointments
+                        </a>
+                        <a asp-controller="Doctor" asp-action="ManageAvailability" class="btn btn-outline-secondary">
+                            Manage Availability
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

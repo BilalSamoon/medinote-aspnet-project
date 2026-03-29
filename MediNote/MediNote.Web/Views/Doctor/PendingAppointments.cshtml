@@ -1,0 +1,74 @@
+@model MediNote.Web.ViewModels.PendingAppointmentsViewModel
+
+@{
+    ViewData["Title"] = "Pending Appointments";
+}
+
+<div class="container mt-4">
+    <h1 class="mb-3">Pending Appointments</h1>
+    <p class="text-muted">
+        This page allows the doctor to approve, reject, or reschedule appointment requests.
+    </p>
+
+    @if (Model != null && !string.IsNullOrEmpty(Model.StatusMessage))
+    {
+        <div class="alert alert-info">
+            @Model.StatusMessage
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning">
+            Requests Waiting for Review
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Requested Date</th>
+                        <th>Symptoms</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.PendingAppointments != null && Model.PendingAppointments.Count > 0)
+                    {
+                        foreach (var appointment in Model.PendingAppointments)
+                        {
+                            <tr>
+                                <td>@appointment.PatientName</td>
+                                <td>@appointment.RequestedDate.ToString("yyyy-MM-dd")</td>
+                                <td>@appointment.Symptoms</td>
+                                <td>
+                                    <form asp-action="ApprovePendingAppointment" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@appointment.AppointmentId" />
+                                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                    </form>
+
+                                    <form asp-action="RejectPendingAppointment" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@appointment.AppointmentId" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                                    </form>
+
+                                    <a asp-controller="Doctor"
+                                       asp-action="Reschedule"
+                                       asp-route-id="@appointment.AppointmentId"
+                                       class="btn btn-primary btn-sm">
+                                        Reschedule
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4">No pending appointments found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

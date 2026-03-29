@@ -1,3 +1,5 @@
+using MediNote.Web.Services;
+
 namespace MediNote.Web
 {
     public class Program
@@ -8,6 +10,9 @@ namespace MediNote.Web
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped<ScheduleService>();
+            builder.Services.AddScoped<AvailabilityService>();
+            builder.Services.AddScoped<DoctorAppointmentService>();
 
             var app = builder.Build();
 
