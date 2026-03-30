@@ -1,4 +1,6 @@
 using MediNote.Web.Services;
+using MediNote.Web.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace MediNote.Web
 {
@@ -7,6 +9,10 @@ namespace MediNote.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Add DbContext
+            builder.Services.AddDbContext<MediNoteDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
@@ -21,8 +27,8 @@ namespace MediNote.Web
                 });
 
             builder.Services.AddScoped<ScheduleService>();
-            builder.Services.AddSingleton<MediNote.Web.Services.UserRepository>(); // Register the hardcoded user repository
-            builder.Services.AddSingleton<MediNote.Web.Services.AppointmentRepository>(); // Register the appointment repository
+            builder.Services.AddScoped<MediNote.Web.Services.UserRepository>(); // scoped for ef core integration
+            builder.Services.AddScoped<MediNote.Web.Services.AppointmentRepository>(); // scoped for ef core integration
             builder.Services.AddScoped<AvailabilityService>();
             builder.Services.AddScoped<DoctorAppointmentService>();
 

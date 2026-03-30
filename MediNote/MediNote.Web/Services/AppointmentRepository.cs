@@ -1,58 +1,35 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using MediNote.Web.Data;
 using MediNote.Web.Models;
 
 namespace MediNote.Web.Services
 {
     public class AppointmentRepository
     {
-        private readonly List<Appointment> _appointments;
-        private int _nextId = 3;
+        private readonly MediNoteDbContext _context;
 
-        public AppointmentRepository()
+        public AppointmentRepository(MediNoteDbContext context)
         {
-            _appointments = new List<Appointment>
-            {
-                new Appointment
-                {
-                    AppointmentId = 1,
-                    PatientName = "patient1",
-                    DoctorName = "Dr. Smith",
-                    RequestedDate = new DateTime(2026, 3, 30),
-                    RequestedTime = "10:00 AM",
-                    Symptoms = "Headache and fever",
-                    Status = "Pending"
-                },
-                new Appointment
-                {
-                    AppointmentId = 2,
-                    PatientName = "patient2",
-                    DoctorName = "Dr. Adams",
-                    RequestedDate = new DateTime(2026, 3, 31),
-                    RequestedTime = "11:00 AM",
-                    Symptoms = "Chest discomfort",
-                    Status = "Approved"
-                }
-            };
+            _context = context;
         }
 
-        public List<Appointment> GetAllAppointments() => _appointments;
+        public List<Appointment> GetAllAppointments() => _context.Appointments.ToList();
 
         public List<Appointment> GetAppointmentsByPatient(string patientName)
-            => _appointments.Where(a => a.PatientName == patientName).ToList();
+            => _context.Appointments.Where(a => a.PatientName == patientName).ToList();
 
         public List<Appointment> GetPendingAppointments()
-            => _appointments.Where(a => a.Status == "Pending").ToList();
+            => _context.Appointments.Where(a => a.Status == "Pending").ToList();
 
         public Appointment GetAppointmentById(int id)
-            => _appointments.FirstOrDefault(a => a.AppointmentId == id);
+            => _context.Appointments.FirstOrDefault(a => a.AppointmentId == id);
 
         public Appointment BookAppointment(string patientName, string doctorName, DateTime date, string time, string symptoms)
         {
             var appointment = new Appointment
             {
-                AppointmentId = _nextId++,
                 PatientName = patientName,
                 DoctorName = doctorName,
                 RequestedDate = date,
@@ -60,16 +37,20 @@ namespace MediNote.Web.Services
                 Symptoms = symptoms,
                 Status = "Pending"
             };
-            _appointments.Add(appointment);
+
+            _context.Appointments.Add(appointment);
+            _context.SaveChanges();
+
             return appointment;
         }
 
         public bool CancelAppointment(int id, string patientName)
         {
-            var appointment = _appointments.FirstOrDefault(a => a.AppointmentId == id && a.PatientName == patientName);
+            var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == id && a.PatientName == patientName);
             if (appointment != null && appointment.Status != "Cancelled")
             {
                 appointment.Status = "Cancelled";
+                _context.SaveChanges();
                 return true;
             }
             return false;
@@ -77,10 +58,11 @@ namespace MediNote.Web.Services
 
         public bool UpdateStatus(int id, string status)
         {
-            var appointment = _appointments.FirstOrDefault(a => a.AppointmentId == id);
+            var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == id);
             if (appointment != null)
             {
                 appointment.Status = status;
+                _context.SaveChanges();
                 return true;
             }
             return false;
