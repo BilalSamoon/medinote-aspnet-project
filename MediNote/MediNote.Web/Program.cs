@@ -17,8 +17,10 @@ namespace MediNote.Web
             builder.Services.AddScoped<DoctorAppointmentService>();
             builder.Services.AddScoped<PriorityCalculationService>();
             builder.Services.AddScoped<AdminReportService>();
-            builder.Services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=MediNoteDb;Trusted_Connection=True;"));
+
+            // Add DbContext. by: camila esguerra
+            builder.Services.AddDbContext<MediNoteDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))); //specific path is in appsettings.json
 
             var app = builder.Build();
 
