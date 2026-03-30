@@ -20,33 +20,73 @@
             <th>Patient</th>
             <th>Date</th>
             <th>Symptoms</th>
+            <th>Priority</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var item in Model.PendingAppointments)
+        @if (!Model.PendingAppointments.Any())
         {
             <tr>
-                <td>@item.AppointmentId</td>
-                <td>@item.PatientName</td>
-                <td>@item.RequestedDate.ToShortDateString()</td>
-                <td>@item.Symptoms</td>
-                <td>
-                    <div class="d-flex gap-2">
-
-                        <form asp-action="ApproveAppointment" method="post">
-                            <input type="hidden" name="id" value="@item.AppointmentId" />
-                            <button class="btn btn-success btn-sm">Approve</button>
-                        </form>
-
-                        <form asp-action="RejectAppointment" method="post">
-                            <input type="hidden" name="id" value="@item.AppointmentId" />
-                            <button class="btn btn-danger btn-sm">Reject</button>
-                        </form>
-
-                    </div>
+                <td colspan="6" class="text-center text-muted">
+                    No pending appointments.
                 </td>
             </tr>
+        }
+        else
+        {
+            @foreach (var item in Model.PendingAppointments)
+            {
+                var symptoms = item.Symptoms.ToLower();
+                string priority = "LOW";
+
+                if (symptoms.Contains("chest") || symptoms.Contains("heart") || symptoms.Contains("breathing"))
+                {
+                    priority = "HIGH";
+                }
+                else if (symptoms.Contains("fever") || symptoms.Contains("infection") || symptoms.Contains("pain"))
+                {
+                    priority = "MEDIUM";
+                }
+
+                <tr>
+                    <td>@item.AppointmentId</td>
+                    <td>@item.PatientName</td>
+                    <td>@item.RequestedDate.ToShortDateString()</td>
+                    <td>@item.Symptoms</td>
+
+                    <td>
+                        @if (priority == "HIGH")
+                        {
+                            <span class="badge bg-danger">HIGH</span>
+                        }
+                        else if (priority == "MEDIUM")
+                        {
+                            <span class="badge bg-warning text-dark">MEDIUM</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-success">LOW</span>
+                        }
+                    </td>
+
+                    <td>
+                        <div class="d-flex gap-2">
+
+                            <form asp-action="ApproveAppointment" method="post">
+                                <input type="hidden" name="id" value="@item.AppointmentId" />
+                                <button class="btn btn-success btn-sm">Approve</button>
+                            </form>
+
+                            <form asp-action="RejectAppointment" method="post">
+                                <input type="hidden" name="id" value="@item.AppointmentId" />
+                                <button class="btn btn-danger btn-sm">Reject</button>
+                            </form>
+
+                        </div>
+                    </td>
+                </tr>
+            }
         }
     </tbody>
 </table>
