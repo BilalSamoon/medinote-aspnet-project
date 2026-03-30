@@ -1,0 +1,67 @@
+@page
+@model MediNote.Web.Pages.Patient.DashboardModel
+
+<h2>Patient Dashboard</h2>
+
+<p>Welcome to your Patient Dashboard. Here are your current appointments:</p>
+
+<a asp-page="/Patient/BookAppointment" class="btn btn-primary mb-3">Book New Appointment</a>
+
+@if (Model.Appointments.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Appointment ID</th>
+                <th>Doctor</th>
+                <th>Requested Date</th>
+                <th>Time</th>
+                <th>Symptoms</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var appt in Model.Appointments)
+            {
+                <tr>
+                    <td>@appt.AppointmentId</td>
+                    <td>@appt.DoctorName</td>
+                    <td>@appt.RequestedDate.ToShortDateString()</td>
+                    <td>@appt.RequestedTime</td>
+                    <td>@appt.Symptoms</td>
+                    <td>
+                        @if (appt.Status == "Pending")
+                        {
+                            <span class="badge bg-warning text-dark">@appt.Status</span>
+                        }
+                        else if (appt.Status == "Approved")
+                        {
+                            <span class="badge bg-success">@appt.Status</span>
+                        }
+                        else if (appt.Status == "Rejected" || appt.Status == "Cancelled")
+                        {
+                            <span class="badge bg-danger">@appt.Status</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">@appt.Status</span>
+                        }
+                    </td>
+                    <td>
+                        @if (appt.Status == "Pending" || appt.Status == "Approved")
+                        {
+                            <form method="post" asp-page-handler="Cancel" asp-route-id="@appt.AppointmentId" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to cancel this appointment?');">Cancel</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>You have no appointments booked yet.</p>
+}

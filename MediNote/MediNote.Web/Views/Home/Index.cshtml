@@ -53,9 +53,12 @@
                         Patients can register, log in, request appointments, submit symptoms,
                         and track their appointment status.
                     </p>
-                    <button class="btn btn-outline-success btn-sm" disabled>
-                        Patient Module Coming Soon
-                    </button>
+                    <a asp-page="/Patient/Dashboard" class="btn btn-outline-success btn-sm me-2">
+                        Dashboard
+                    </a>
+                    <a asp-page="/Patient/BookAppointment" class="btn btn-outline-success btn-sm">
+                        Book Appointment
+                    </a>
                 </div>
             </div>
         </div>
@@ -95,6 +98,12 @@
                         </a>
                         <a asp-controller="Doctor" asp-action="ManageAvailability" class="btn btn-outline-secondary">
                             Manage Availability
+                        </a>
+                        <a asp-page="/Patient/Dashboard" class="btn btn-outline-secondary">
+                            Patient Dashboard
+                        </a>
+                        <a asp-page="/Patient/BookAppointment" class="btn btn-outline-secondary">
+                            Book Appointment
                         </a>
                     </div>
                 </div>

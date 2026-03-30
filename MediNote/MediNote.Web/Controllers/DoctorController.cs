@@ -11,6 +11,7 @@ namespace MediNote.Web.Controllers
     /// Controller responsible for doctor-related pages such as schedule,
     /// availability management, pending appointments, and rescheduling.
     /// </summary>
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Doctor,Admin")]
     public class DoctorController : Controller
     {
         /// <summary>
@@ -146,8 +147,9 @@ namespace MediNote.Web.Controllers
         [HttpPost]
         public IActionResult ApprovePendingAppointment(int id)
         {
+            string message = _doctorAppointmentService.ApproveAppointment(id);
             var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
-            model.StatusMessage = _doctorAppointmentService.ApproveAppointment(id);
+            model.StatusMessage = message;
             return View("PendingAppointments", model);
         }
 
@@ -159,8 +161,9 @@ namespace MediNote.Web.Controllers
         [HttpPost]
         public IActionResult RejectPendingAppointment(int id)
         {
+            string message = _doctorAppointmentService.RejectAppointment(id);
             var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
-            model.StatusMessage = _doctorAppointmentService.RejectAppointment(id);
+            model.StatusMessage = message;
             return View("PendingAppointments", model);
         }
 

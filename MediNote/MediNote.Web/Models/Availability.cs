@@ -1,4 +1,5 @@
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MediNote.Web.Models
 {
@@ -6,6 +7,7 @@ namespace MediNote.Web.Models
     /// Author: Daniel Guillaumont
     /// Represents one doctor availability slot.
     /// </summary>
+    [Authorize(Roles = "Patient,Admin")]
     public class Availability
     {
         /// <summary>

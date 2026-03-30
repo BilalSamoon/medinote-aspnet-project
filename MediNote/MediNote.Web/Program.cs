@@ -10,7 +10,19 @@ namespace MediNote.Web
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddRazorPages(); // Added for Razor Pages support (like the Login page)
+
+            // Add Cookie Authentication
+            builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                    options.AccessDeniedPath = "/Account/AccessDenied";
+                });
+
             builder.Services.AddScoped<ScheduleService>();
+            builder.Services.AddSingleton<MediNote.Web.Services.UserRepository>(); // Register the hardcoded user repository
+            builder.Services.AddSingleton<MediNote.Web.Services.AppointmentRepository>(); // Register the appointment repository
             builder.Services.AddScoped<AvailabilityService>();
             builder.Services.AddScoped<DoctorAppointmentService>();
 
@@ -27,6 +39,7 @@ namespace MediNote.Web
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseAuthentication(); // Ensure Authentication is triggered before Authorization
             app.UseAuthorization();
 
             app.MapStaticAssets();
@@ -34,6 +47,8 @@ namespace MediNote.Web
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}")
                 .WithStaticAssets();
+
+            app.MapRazorPages(); // Map Razor Pages routing
 
             app.Run();
         }

@@ -9,32 +9,34 @@ namespace MediNote.Web.Services
     /// </summary>
     public class DoctorAppointmentService
     {
+        private readonly AppointmentRepository _appointmentRepository;
+
+        public DoctorAppointmentService(AppointmentRepository appointmentRepository)
+        {
+            _appointmentRepository = appointmentRepository;
+        }
+
         /// <summary>
         /// Returns sample pending appointments for display.
         /// </summary>
         /// <returns>A populated pending appointments view model.</returns>
         public PendingAppointmentsViewModel GetPendingAppointmentsViewModel()
         {
-            return new PendingAppointmentsViewModel
+            var pendingDb = _appointmentRepository.GetPendingAppointments();
+            var vm = new PendingAppointmentsViewModel();
+
+            foreach(var appt in pendingDb)
             {
-                PendingAppointments =
+                vm.PendingAppointments.Add(new PendingAppointmentItemViewModel
                 {
-                    new PendingAppointmentItemViewModel
-                    {
-                        AppointmentId = 1,
-                        PatientName = "Emma Wilson",
-                        RequestedDate = new DateTime(2026, 3, 30),
-                        Symptoms = "Headache and fever"
-                    },
-                    new PendingAppointmentItemViewModel
-                    {
-                        AppointmentId = 2,
-                        PatientName = "David Brown",
-                        RequestedDate = new DateTime(2026, 3, 31),
-                        Symptoms = "Chest discomfort"
-                    }
-                }
-            };
+                    AppointmentId = appt.AppointmentId,
+                    PatientName = appt.PatientName,
+                    RequestedDate = appt.RequestedDate,
+                    Symptoms = appt.Symptoms
+                });
+            }
+
+            return vm;
         }
 
         /// <summary>
@@ -44,7 +46,11 @@ namespace MediNote.Web.Services
         /// <returns>A success message.</returns>
         public string ApproveAppointment(int appointmentId)
         {
-            return $"Appointment #{appointmentId} was approved successfully.";
+            if (_appointmentRepository.UpdateStatus(appointmentId, "Approved"))
+            {
+                return $"Appointment #{appointmentId} was approved successfully.";
+            }
+            return $"Appointment #{appointmentId} not found.";
         }
 
         /// <summary>
@@ -54,7 +60,11 @@ namespace MediNote.Web.Services
         /// <returns>A success message.</returns>
         public string RejectAppointment(int appointmentId)
         {
-            return $"Appointment #{appointmentId} was rejected successfully.";
+            if (_appointmentRepository.UpdateStatus(appointmentId, "Rejected"))
+            {
+                return $"Appointment #{appointmentId} was rejected successfully.";
+            }
+            return $"Appointment #{appointmentId} not found.";
         }
 
         /// <summary>
@@ -64,25 +74,15 @@ namespace MediNote.Web.Services
         /// <returns>A populated reschedule appointment view model.</returns>
         public RescheduleAppointmentViewModel GetRescheduleViewModel(int appointmentId)
         {
-            if (appointmentId == 1)
+            var appt = _appointmentRepository.GetAppointmentById(appointmentId);
+            if (appt != null)
             {
                 return new RescheduleAppointmentViewModel
                 {
-                    AppointmentId = 1,
-                    PatientName = "Emma Wilson",
-                    CurrentDate = new DateTime(2026, 3, 30),
-                    CurrentTime = "10:00 AM"
-                };
-            }
-
-            if (appointmentId == 2)
-            {
-                return new RescheduleAppointmentViewModel
-                {
-                    AppointmentId = 2,
-                    PatientName = "David Brown",
-                    CurrentDate = new DateTime(2026, 3, 31),
-                    CurrentTime = "1:30 PM"
+                    AppointmentId = appt.AppointmentId,
+                    PatientName = appt.PatientName,
+                    CurrentDate = appt.RequestedDate,
+                    CurrentTime = appt.RequestedTime
                 };
             }
 
@@ -102,7 +102,8 @@ namespace MediNote.Web.Services
         /// <returns>True if the appointment is eligible; otherwise false.</returns>
         public bool IsAppointmentEligibleForReschedule(int appointmentId)
         {
-            return appointmentId == 1 || appointmentId == 2;
+            var appt = _appointmentRepository.GetAppointmentById(appointmentId);
+            return appt != null && appt.Status != "Cancelled" && appt.Status != "Rejected";
         }
 
         /// <summary>
