@@ -4,17 +4,17 @@
     ViewData["Title"] = "Manage Appointments";
 }
 
-<h1>Manage Appointments</h1>
+<h1 class="mb-4">Manage Appointments</h1>
 
 @if (!string.IsNullOrEmpty(Model.StatusMessage))
 {
-    <div class="alert alert-success">
+    <div class="alert alert-success shadow-sm">
         @Model.StatusMessage
     </div>
 }
 
-<table class="table">
-    <thead>
+<table class="table table-striped table-hover shadow-sm">
+    <thead class="table-dark">
         <tr>
             <th>ID</th>
             <th>Patient</th>
@@ -32,21 +32,25 @@
                 <td>@item.RequestedDate.ToShortDateString()</td>
                 <td>@item.Symptoms</td>
                 <td>
-                    <form asp-action="ApproveAppointment" method="post" style="display:inline;">
-                        <input type="hidden" name="id" value="@item.AppointmentId" />
-                        <button class="btn btn-success btn-sm">Approve</button>
-                    </form>
+                    <div class="d-flex gap-2">
 
-                    <form asp-action="RejectAppointment" method="post" style="display:inline;">
-                        <input type="hidden" name="id" value="@item.AppointmentId" />
-                        <button class="btn btn-danger btn-sm">Reject</button>
-                    </form>
+                        <form asp-action="ApproveAppointment" method="post">
+                            <input type="hidden" name="id" value="@item.AppointmentId" />
+                            <button class="btn btn-success btn-sm">Approve</button>
+                        </form>
+
+                        <form asp-action="RejectAppointment" method="post">
+                            <input type="hidden" name="id" value="@item.AppointmentId" />
+                            <button class="btn btn-danger btn-sm">Reject</button>
+                        </form>
+
+                    </div>
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-<p>
-    <a asp-action="Dashboard">Back to Dashboard</a>
-</p>
+<div class="mt-3">
+    <a asp-action="Dashboard" class="btn btn-secondary">Back to Dashboard</a>
+</div>

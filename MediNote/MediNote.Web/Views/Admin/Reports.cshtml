@@ -2,11 +2,30 @@
     ViewData["Title"] = "System Reports";
 }
 
-<h1>System Reports</h1>
+<h1 class="mb-4">System Reports</h1>
 
-<p><strong>Total Appointments:</strong> @ViewBag.TotalAppointments</p>
-<p><strong>Pending Appointments:</strong> @ViewBag.PendingAppointments</p>
+<div class="row g-4">
 
-<p>
-    <a asp-controller="Admin" asp-action="Dashboard">Back to Dashboard</a>
-</p>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title">Total Appointments</h5>
+                <h2 class="text-primary">@ViewBag.TotalAppointments</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-warning">
+            <div class="card-body text-center">
+                <h5 class="card-title">Pending Appointments</h5>
+                <h2 class="text-warning">@ViewBag.PendingAppointments</h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="mt-4">
+    <a asp-action="Dashboard" class="btn btn-secondary">Back to Dashboard</a>
+</div>
