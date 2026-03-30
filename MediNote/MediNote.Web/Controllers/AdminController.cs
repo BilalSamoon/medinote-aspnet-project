@@ -55,5 +55,32 @@ namespace MediNote.Web.Controllers
 
             return View(priorityItems);
         }
+
+        //Admin manages appointments
+        public IActionResult ManageAppointments()
+        {
+            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
+            return View(model);
+        }
+
+        //Approve
+        [HttpPost]
+        public IActionResult ApproveAppointment(int id)
+        {
+            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
+            model.StatusMessage = _doctorAppointmentService.ApproveAppointment(id);
+
+            return View("ManageAppointments", model);
+        }
+
+        //Reject
+        [HttpPost]
+        public IActionResult RejectAppointment(int id)
+        {
+            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
+            model.StatusMessage = _doctorAppointmentService.RejectAppointment(id);
+
+            return View("ManageAppointments", model);
+        }
     }
 }
