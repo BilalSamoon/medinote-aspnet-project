@@ -20,6 +20,10 @@ namespace MediNote.Web.Services
             _context = context;
         }
 
+        public AvailabilityService()
+        {
+        }
+
         /// <summary>
         /// Returns the manage availability page model with sample data.
         /// </summary>
