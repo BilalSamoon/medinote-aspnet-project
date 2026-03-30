@@ -1,4 +1,6 @@
 using MediNote.Web.Services;
+using Microsoft.EntityFrameworkCore;
+using MediNote.Web.Data;
 
 namespace MediNote.Web
 {
@@ -15,6 +17,8 @@ namespace MediNote.Web
             builder.Services.AddScoped<DoctorAppointmentService>();
             builder.Services.AddScoped<PriorityCalculationService>();
             builder.Services.AddScoped<AdminReportService>();
+            builder.Services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=MediNoteDb;Trusted_Connection=True;"));
 
             var app = builder.Build();
 
