@@ -17,6 +17,9 @@ namespace MediNote.Web
             builder.Services.AddScoped<DoctorAppointmentService>();
             builder.Services.AddScoped<PriorityCalculationService>();
             builder.Services.AddScoped<AdminReportService>();
+            
+            // Register the AppointmentRepository
+            builder.Services.AddScoped<AppointmentRepository>();
 
             // Add DbContext. by: camila esguerra
             builder.Services.AddDbContext<MediNoteDbContext>(options =>
