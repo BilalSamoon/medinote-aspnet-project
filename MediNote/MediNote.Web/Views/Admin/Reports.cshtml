@@ -1,0 +1,12 @@
+﻿@{
+    ViewData["Title"] = "System Reports";
+}
+
+<h1>System Reports</h1>
+
+<p><strong>Total Appointments:</strong> @ViewBag.TotalAppointments</p>
+<p><strong>Pending Appointments:</strong> @ViewBag.PendingAppointments</p>
+
+<p>
+    <a asp-controller="Admin" asp-action="Dashboard">Back to Dashboard</a>
+</p>

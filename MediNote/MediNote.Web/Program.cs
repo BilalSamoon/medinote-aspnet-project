@@ -13,6 +13,7 @@ namespace MediNote.Web
             builder.Services.AddScoped<ScheduleService>();
             builder.Services.AddScoped<AvailabilityService>();
             builder.Services.AddScoped<DoctorAppointmentService>();
+            builder.Services.AddScoped<PriorityCalculationService>();
 
             var app = builder.Build();
 
@@ -20,7 +21,6 @@ namespace MediNote.Web
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
