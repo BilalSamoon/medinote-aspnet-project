@@ -57,7 +57,7 @@ namespace MediNote.Web.Pages.Account
 
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = true
+                IsPersistent = false
             };
 
             await HttpContext.SignInAsync(

@@ -16,7 +16,10 @@ namespace MediNote.Web
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
-            builder.Services.AddRazorPages(); // Added for Razor Pages support (like the Login page)
+            builder.Services.AddRazorPages(options =>
+            {
+                options.RootDirectory = "/Views";
+            }); // Added for Razor Pages support (like the Login page)
 
             // Add Cookie Authentication
             builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationDefaults.AuthenticationScheme)
