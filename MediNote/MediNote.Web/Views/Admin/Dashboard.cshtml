@@ -2,12 +2,38 @@
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<h1>Admin Dashboard</h1>
+<h1 class="mb-4">Admin Dashboard</h1>
 
-<p>Welcome to the admin module.</p>
+<div class="row g-4">
 
-<ul>
-    <li><a asp-controller="Admin" asp-action="ManageAppointments">Manage Appointments</a></li>
-    <li><a asp-controller="Admin" asp-action="Reports">View System Reports</a></li>
-    <li><a asp-controller="Admin" asp-action="PriorityReport">View Priority Report</a></li>
-</ul>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-primary">
+            <div class="card-body">
+                <h5 class="card-title">System Reports</h5>
+                <p class="card-text">View total and pending appointments.</p>
+                <a asp-action="Reports" class="btn btn-primary">View Reports</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-dark">
+            <div class="card-body">
+                <h5 class="card-title">Priority Report</h5>
+                <p class="card-text">Analyze patient urgency based on symptoms.</p>
+                <a asp-action="PriorityReport" class="btn btn-dark">View Priority</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm border-success">
+            <div class="card-body">
+                <h5 class="card-title">Manage Appointments</h5>
+                <p class="card-text">Approve or reject appointment requests.</p>
+                <a asp-action="ManageAppointments" class="btn btn-success">Manage</a>
+            </div>
+        </div>
+    </div>
+
+</div>
