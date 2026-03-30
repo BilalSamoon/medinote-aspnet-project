@@ -67,5 +67,18 @@ namespace MediNote.Web.Services
             }
             return false;
         }
+
+        public bool RescheduleAppointment(int id, DateTime newDate, string newTime)
+        {
+            var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == id);
+            if (appointment != null)
+            {
+                appointment.RequestedDate = newDate;
+                appointment.RequestedTime = newTime;
+                _context.SaveChanges();
+                return true;
+            }
+            return false;
+        }
     }
 }

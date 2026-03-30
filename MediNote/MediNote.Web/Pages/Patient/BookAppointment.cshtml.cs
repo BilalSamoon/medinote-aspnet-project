@@ -1,3 +1,4 @@
+using MediNote.Web.ViewModels;
 using System;
 using System.ComponentModel.DataAnnotations;
 using MediNote.Web.Services;
@@ -10,25 +11,15 @@ namespace MediNote.Web.Pages.Patient
     [Authorize(Roles = "Patient,Admin")]
     public class BookAppointmentModel : PageModel
     {
-        private readonly AppointmentRepository _appointmentRepository;
+        private readonly PatientService _patientService;
 
-        public BookAppointmentModel(AppointmentRepository appointmentRepository)
+        public BookAppointmentModel(PatientService patientService)
         {
-            _appointmentRepository = appointmentRepository;
+            _patientService = patientService;
         }
 
-        [BindProperty, Required]
-        public string DoctorName { get; set; } = string.Empty;
-
-        [BindProperty, Required]
-        [DataType(DataType.Date)]
-        public DateTime RequestedDate { get; set; } = DateTime.Today.AddDays(1);
-
-        [BindProperty, Required]
-        public string RequestedTime { get; set; } = "10:00";
-
-        [BindProperty, Required(ErrorMessage = "Please provide your symptoms so the doctor can prepare.")]
-        public string Symptoms { get; set; } = string.Empty;
+        [BindProperty]
+        public PatientAppointmentRequestViewModel RequestModel { get; set; } = new PatientAppointmentRequestViewModel();
 
         public void OnGet()
         {
@@ -44,12 +35,12 @@ namespace MediNote.Web.Pages.Patient
             string patientName = User.Identity?.Name ?? "Unknown";
 
             // Add the appt
-            _appointmentRepository.BookAppointment(
+            _patientService.BookNewAppointment(
                 patientName, 
-                DoctorName, 
-                RequestedDate, 
-                RequestedTime, 
-                Symptoms
+                RequestModel.DoctorName, 
+                RequestModel.RequestedDate, 
+                RequestModel.RequestedTime, 
+                RequestModel.Symptoms
             );
 
             return RedirectToPage("/Patient/Dashboard");

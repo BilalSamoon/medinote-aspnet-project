@@ -114,29 +114,33 @@ namespace MediNote.Web.Services
         /// <returns>True if there is a conflict; otherwise false.</returns>
         public bool HasRescheduleConflict(DateTime newDate, TimeSpan newTime)
         {
-            bool firstConflict =
-                newDate.Date == new DateTime(2026, 3, 29).Date &&
-                newTime == new TimeSpan(9, 0, 0);
-
-            bool secondConflict =
-                newDate.Date == new DateTime(2026, 3, 29).Date &&
-                newTime == new TimeSpan(11, 30, 0);
-
-            bool thirdConflict =
-                newDate.Date == new DateTime(2026, 3, 29).Date &&
-                newTime == new TimeSpan(14, 0, 0);
-
-            return firstConflict || secondConflict || thirdConflict;
+            var formattedTime = newTime.ToString(@"hh\:mm");
+            var allAppointments = _appointmentRepository.GetAllAppointments();
+            foreach (var appt in allAppointments)
+            {
+                if (appt.RequestedDate.Date == newDate.Date && appt.RequestedTime == formattedTime && appt.Status != "Cancelled" && appt.Status != "Rejected")
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
         /// Returns a success message for a completed reschedule.
         /// </summary>
         /// <param name="appointmentId">The appointment ID.</param>
+        /// <param name="newDate">The new selected date.</param>
+        /// <param name="newTime">The new selected time.</param>
         /// <returns>A success message.</returns>
-        public string ConfirmReschedule(int appointmentId)
+        public string ConfirmReschedule(int appointmentId, DateTime newDate, TimeSpan newTime)
         {
-            return $"Appointment #{appointmentId} was rescheduled successfully.";
+            var formattedTime = newTime.ToString(@"hh\:mm");
+            if (_appointmentRepository.RescheduleAppointment(appointmentId, newDate, formattedTime))
+            {
+                return $"Appointment #{appointmentId} was rescheduled successfully.";
+            }
+            return $"Failed to reschedule Appointment #{appointmentId}.";
         }
     }
 }

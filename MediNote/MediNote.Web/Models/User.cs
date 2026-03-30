@@ -1,5 +1,10 @@
 namespace MediNote.Web.Models
 {
+
+    /// <summary>
+    /// Author: Camila Esguerra
+    /// User model for authentication and role management.
+    /// </summary>
     public class User
     {
         public int Id { get; set; }

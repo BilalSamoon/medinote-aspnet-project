@@ -10,11 +10,11 @@ namespace MediNote.Web.Pages.Patient
     [Authorize(Roles = "Patient,Admin")]
     public class DashboardModel : PageModel
     {
-        private readonly AppointmentRepository _appointmentRepository;
+        private readonly PatientService _patientService;
 
-        public DashboardModel(AppointmentRepository appointmentRepository)
+        public DashboardModel(PatientService patientService)
         {
-            _appointmentRepository = appointmentRepository;
+            _patientService = patientService;
         }
 
         public IList<Appointment> Appointments { get; set; } = new List<Appointment>();
@@ -22,14 +22,14 @@ namespace MediNote.Web.Pages.Patient
         public void OnGet()
         {
             string patientName = User.Identity?.Name ?? string.Empty;
-            Appointments = _appointmentRepository.GetAppointmentsByPatient(patientName);
+            Appointments = _patientService.GetPatientAppointments(patientName);
         }
 
         public IActionResult OnPostCancel(int id)
         {
             string patientName = User.Identity?.Name ?? string.Empty;
-            _appointmentRepository.CancelAppointment(id, patientName);
-            
+            _patientService.CancelPatientAppointment(id, patientName);
+
             return RedirectToPage();
         }
     }

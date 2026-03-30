@@ -218,8 +218,9 @@ namespace MediNote.Web.Controllers
                 return View(model);
             }
 
+            string statusMessage = _doctorAppointmentService.ConfirmReschedule(model.AppointmentId, model.NewDate!.Value, model.NewTime!.Value);
             var refreshedModel = _doctorAppointmentService.GetRescheduleViewModel(model.AppointmentId);
-            refreshedModel.StatusMessage = _doctorAppointmentService.ConfirmReschedule(model.AppointmentId);
+            refreshedModel.StatusMessage = statusMessage;
             return View(refreshedModel);
         }
     }

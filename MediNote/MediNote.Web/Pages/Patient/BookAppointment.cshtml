@@ -12,9 +12,9 @@
 
 <form method="post">
     <div class="form-group row mb-3">
-        <label asp-for="DoctorName" class="col-sm-2 col-form-label">Doctor</label>
+        <label asp-for="RequestModel.DoctorName" class="col-sm-2 col-form-label">Doctor</label>
         <div class="col-sm-5">
-            <select asp-for="DoctorName" class="form-control">
+            <select asp-for="RequestModel.DoctorName" class="form-control">
                 <option value="Dr. Smith">Dr. Smith</option>
                 <option value="Dr. Adams">Dr. Adams</option>
                 <option value="Dr. Lee">Dr. Lee</option>
@@ -23,23 +23,23 @@
     </div>
 
     <div class="form-group row mb-3">
-        <label asp-for="RequestedDate" class="col-sm-2 col-form-label">Date</label>
+        <label asp-for="RequestModel.RequestedDate" class="col-sm-2 col-form-label">Date</label>
         <div class="col-sm-5">
-            <input asp-for="RequestedDate" type="date" class="form-control" />
+            <input asp-for="RequestModel.RequestedDate" type="date" class="form-control" />
         </div>
     </div>
-    
+
     <div class="form-group row mb-3">
-        <label asp-for="RequestedTime" class="col-sm-2 col-form-label">Time</label>
+        <label asp-for="RequestModel.RequestedTime" class="col-sm-2 col-form-label">Time</label>
         <div class="col-sm-5">
-            <input asp-for="RequestedTime" type="time" class="form-control" />
+            <input asp-for="RequestModel.RequestedTime" type="time" class="form-control" />
         </div>
     </div>
-    
+
     <div class="form-group row mb-3">
-        <label asp-for="Symptoms" class="col-sm-2 col-form-label">Symptoms</label>
+        <label asp-for="RequestModel.Symptoms" class="col-sm-2 col-form-label">Symptoms</label>
         <div class="col-sm-5">
-            <textarea asp-for="Symptoms" class="form-control" rows="4"></textarea>
+            <textarea asp-for="RequestModel.Symptoms" class="form-control" rows="4"></textarea>
         </div>
     </div>
 

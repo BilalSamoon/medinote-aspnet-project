@@ -31,6 +31,7 @@ namespace MediNote.Web
             builder.Services.AddScoped<MediNote.Web.Services.AppointmentRepository>(); // scoped for ef core integration
             builder.Services.AddScoped<AvailabilityService>();
             builder.Services.AddScoped<DoctorAppointmentService>();
+            builder.Services.AddScoped<PatientService>();
 
             var app = builder.Build();
 
@@ -55,6 +56,13 @@ namespace MediNote.Web
                 .WithStaticAssets();
 
             app.MapRazorPages(); // Map Razor Pages routing
+
+            // Ensures database is created
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<MediNoteDbContext>();
+                dbContext.Database.Migrate(); //  using migrations
+            }
 
             app.Run();
         }
