@@ -1,5 +1,7 @@
 using System;
 using MediNote.Web.ViewModels;
+using MediNote.Web.Models;
+using System.Linq;
 
 namespace MediNote.Web.Services
 {
@@ -9,40 +11,36 @@ namespace MediNote.Web.Services
     /// </summary>
     public class ScheduleService
     {
+        private readonly AppointmentRepository _appointmentRepository;
+
+        public ScheduleService(AppointmentRepository appointmentRepository)
+        {
+            _appointmentRepository = appointmentRepository;
+        }
+
         /// <summary>
         /// Returns sample schedule data for the doctor schedule page.
         /// </summary>
         /// <returns>A populated doctor schedule view model.</returns>
-        public DoctorScheduleViewModel GetDoctorSchedule()
+        public DoctorScheduleViewModel GetDoctorSchedule(string doctorName = null)
         {
+            var appointments = _appointmentRepository.GetAllAppointments();
+            if (!string.IsNullOrEmpty(doctorName))
+            {
+                appointments = appointments.Where(a => a.DoctorName == doctorName).ToList();
+            }
+
             return new DoctorScheduleViewModel
             {
-                DoctorName = "Dr. Daniel Guillaumont",
-                ScheduleDate = new DateTime(2026, 3, 29),
-                Appointments =
+                DoctorName = doctorName ?? "Dr. Daniel Guillaumont",
+                ScheduleDate = DateTime.Now.Date,
+                Appointments = appointments.Select(a => new DoctorScheduleItemViewModel
                 {
-                    new DoctorScheduleItemViewModel
-                    {
-                        PatientName = "Victoria Zhou",
-                        AppointmentDate = new DateTime(2026, 3, 29),
-                        AppointmentTime = "9:00 AM",
-                        Status = "Approved"
-                    },
-                    new DoctorScheduleItemViewModel
-                    {
-                        PatientName = "Aidan Kumar",
-                        AppointmentDate = new DateTime(2026, 3, 29),
-                        AppointmentTime = "11:30 AM",
-                        Status = "Pending"
-                    },
-                    new DoctorScheduleItemViewModel
-                    {
-                        PatientName = "Jamal Ishani",
-                        AppointmentDate = new DateTime(2026, 3, 29),
-                        AppointmentTime = "2:00 PM",
-                        Status = "Rescheduled"
-                    }
-                }
+                    PatientName = a.PatientName,
+                    AppointmentDate = a.RequestedDate,
+                    AppointmentTime = a.RequestedTime,
+                    Status = a.Status
+                }).ToList()
             };
         }
     }

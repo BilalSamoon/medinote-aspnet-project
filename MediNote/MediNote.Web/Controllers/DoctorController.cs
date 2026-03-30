@@ -51,7 +51,7 @@ namespace MediNote.Web.Controllers
         /// <returns>The Schedule view.</returns>
         public IActionResult Schedule()
         {
-            var model = _scheduleService.GetDoctorSchedule();
+            var model = _scheduleService.GetDoctorSchedule(User.Identity?.Name);
             return View(model);
         }
 
@@ -111,6 +111,14 @@ namespace MediNote.Web.Controllers
                 ModelState.AddModelError(string.Empty, "The selected availability slot overlaps with an existing slot.");
                 return View(model);
             }
+
+            _availabilityService.AddAvailability(new Availability
+            {
+                DoctorName = User.Identity?.Name ?? "Unknown Doctor",
+                AvailableDate = model.AvailableDate.Value,
+                StartTime = model.StartTime.Value,
+                EndTime = model.EndTime.Value
+            });
 
             var refreshedModel = _availabilityService.GetManageAvailabilityViewModel();
 

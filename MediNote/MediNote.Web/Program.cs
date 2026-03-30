@@ -10,7 +10,7 @@ namespace MediNote.Web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add DbContext
+            // Add DbContext. by: camila esguerra
             builder.Services.AddDbContext<MediNoteDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

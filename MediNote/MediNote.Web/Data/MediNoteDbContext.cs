@@ -1,6 +1,12 @@
 using MediNote.Web.Models;
 using Microsoft.EntityFrameworkCore;
 
+
+/// <summary>
+/// Author: Camila Esguerra
+/// Db context for the MediNote application, responsible for managing database access and providing DbSet properties for each entity in the application.
+/// </summary>
+
 namespace MediNote.Web.Data
 {
     public class MediNoteDbContext : DbContext
@@ -12,6 +18,7 @@ namespace MediNote.Web.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<Availability> Availabilities { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
