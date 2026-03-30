@@ -14,6 +14,7 @@ namespace MediNote.Web
             builder.Services.AddScoped<AvailabilityService>();
             builder.Services.AddScoped<DoctorAppointmentService>();
             builder.Services.AddScoped<PriorityCalculationService>();
+            builder.Services.AddScoped<AdminReportService>();
 
             var app = builder.Build();
 
