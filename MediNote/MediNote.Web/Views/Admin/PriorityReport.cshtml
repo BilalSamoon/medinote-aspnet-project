@@ -1,0 +1,33 @@
+﻿@model List<MediNote.Web.ViewModels.PriorityReportItemViewModel>
+
+@{
+    ViewData["Title"] = "Priority Report";
+}
+
+<h1>Priority Report</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Appointment ID</th>
+            <th>Patient Name</th>
+            <th>Symptoms</th>
+            <th>Priority</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.AppointmentId</td>
+                <td>@item.PatientName</td>
+                <td>@item.Symptoms</td>
+                <td><strong>@item.Priority</strong></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<p>
+    <a asp-controller="Admin" asp-action="Dashboard">Back to Dashboard</a>
+</p>
