@@ -2,6 +2,9 @@ using System;
 
 namespace MediNote.Web.Models
 {
+
+    //By: Camila Esguerra
+    // Represents an appointment request made by a patient to see a doctor. Contains details about the patient, doctor, requested date and time, symptoms, and the status of the appointment.
     public class Appointment
     {
         public int AppointmentId { get; set; }
