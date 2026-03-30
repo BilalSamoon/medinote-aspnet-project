@@ -21,6 +21,8 @@
     </div>
 
     <div class="row g-4">
+
+        <!-- Doctor -->
         <div class="col-md-4">
             <div class="card h-100 shadow-sm">
                 <div class="card-header bg-primary text-white">
@@ -42,6 +44,7 @@
             </div>
         </div>
 
+        <!-- Patient -->
         <div class="col-md-4">
             <div class="card h-100 shadow-sm">
                 <div class="card-header bg-success text-white">
@@ -60,6 +63,7 @@
             </div>
         </div>
 
+        <!-- ADMIN -->
         <div class="col-md-4">
             <div class="card h-100 shadow-sm">
                 <div class="card-header bg-dark text-white">
@@ -71,12 +75,13 @@
                         Administrators manage users, assign roles, configure system settings,
                         and review reports.
                     </p>
-                    <button class="btn btn-outline-dark btn-sm" disabled>
-                        Admin Module Coming Soon
-                    </button>
+                    <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-dark btn-sm">
+                        Open Admin Dashboard
+                    </a>
                 </div>
             </div>
         </div>
+
     </div>
 
     <div class="row mt-4 g-4">
@@ -96,6 +101,11 @@
                         <a asp-controller="Doctor" asp-action="ManageAvailability" class="btn btn-outline-secondary">
                             Manage Availability
                         </a>
+
+                        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-secondary">
+                            Admin Dashboard
+                        </a>
+
                     </div>
                 </div>
             </div>
