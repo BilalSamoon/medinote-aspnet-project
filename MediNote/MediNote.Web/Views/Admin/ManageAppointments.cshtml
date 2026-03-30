@@ -1,0 +1,52 @@
+﻿@model MediNote.Web.ViewModels.PendingAppointmentsViewModel
+
+@{
+    ViewData["Title"] = "Manage Appointments";
+}
+
+<h1>Manage Appointments</h1>
+
+@if (!string.IsNullOrEmpty(Model.StatusMessage))
+{
+    <div class="alert alert-success">
+        @Model.StatusMessage
+    </div>
+}
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Patient</th>
+            <th>Date</th>
+            <th>Symptoms</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.PendingAppointments)
+        {
+            <tr>
+                <td>@item.AppointmentId</td>
+                <td>@item.PatientName</td>
+                <td>@item.RequestedDate.ToShortDateString()</td>
+                <td>@item.Symptoms</td>
+                <td>
+                    <form asp-action="ApproveAppointment" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@item.AppointmentId" />
+                        <button class="btn btn-success btn-sm">Approve</button>
+                    </form>
+
+                    <form asp-action="RejectAppointment" method="post" style="display:inline;">
+                        <input type="hidden" name="id" value="@item.AppointmentId" />
+                        <button class="btn btn-danger btn-sm">Reject</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<p>
+    <a asp-action="Dashboard">Back to Dashboard</a>
+</p>
