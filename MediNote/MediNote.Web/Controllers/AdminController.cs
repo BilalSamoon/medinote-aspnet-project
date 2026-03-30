@@ -12,15 +12,18 @@ namespace MediNote.Web.Controllers
         private readonly DoctorAppointmentService _doctorAppointmentService;
         private readonly ScheduleService _scheduleService;
         private readonly PriorityCalculationService _priorityCalculationService;
+        private readonly AdminReportService _adminReportService;
 
         public AdminController(
             DoctorAppointmentService doctorAppointmentService,
             ScheduleService scheduleService,
-            PriorityCalculationService priorityCalculationService)
+            PriorityCalculationService priorityCalculationService,
+            AdminReportService adminReportService)
         {
             _doctorAppointmentService = doctorAppointmentService;
             _scheduleService = scheduleService;
             _priorityCalculationService = priorityCalculationService;
+            _adminReportService = adminReportService;
         }
 
         public IActionResult Dashboard()
@@ -33,8 +36,11 @@ namespace MediNote.Web.Controllers
             var pendingAppointmentsModel = _doctorAppointmentService.GetPendingAppointmentsViewModel();
             var doctorScheduleModel = _scheduleService.GetDoctorSchedule();
 
-            ViewBag.TotalAppointments = doctorScheduleModel.Appointments.Count;
-            ViewBag.PendingAppointments = pendingAppointmentsModel.PendingAppointments.Count;
+            ViewBag.TotalAppointments = _adminReportService.GetTotalAppointments(
+                doctorScheduleModel.Appointments.Count);
+
+            ViewBag.PendingAppointments = _adminReportService.GetPendingAppointments(
+                pendingAppointmentsModel.PendingAppointments.Count);
 
             return View();
         }
@@ -56,14 +62,12 @@ namespace MediNote.Web.Controllers
             return View(priorityItems);
         }
 
-        //Admin manages appointments
         public IActionResult ManageAppointments()
         {
             var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
             return View(model);
         }
 
-        //Approve
         [HttpPost]
         public IActionResult ApproveAppointment(int id)
         {
@@ -73,7 +77,6 @@ namespace MediNote.Web.Controllers
             return View("ManageAppointments", model);
         }
 
-        //Reject
         [HttpPost]
         public IActionResult RejectAppointment(int id)
         {
