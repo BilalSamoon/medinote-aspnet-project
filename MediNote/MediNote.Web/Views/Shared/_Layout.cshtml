@@ -21,57 +21,32 @@
 
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-
-                        @if (User.Identity != null && User.Identity.IsAuthenticated && (User.IsInRole("Doctor") || User.IsInRole("Admin")))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Doctor" asp-action="Schedule">Doctor Schedule</a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Doctor" asp-action="ManageAvailability">Manage Availability</a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Doctor" asp-action="PendingAppointments">Pending Appointments</a>
-                            </li>
-                        }
-
-                        @if (User.Identity != null && User.Identity.IsAuthenticated && (User.IsInRole("Patient") || User.IsInRole("Admin")))
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Patient/Dashboard">Patient Dashboard</a>
-                            </li>
-                        }
 
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Home</a>
                         </li>
-                    </ul>
-                    <ul class="navbar-nav">
-                        @if (User.Identity != null && User.Identity.IsAuthenticated)
-                        {
-                            <li class="nav-item">
-                                <span class="nav-link text-dark">Hello, @User.Identity.Name!</span>
-                            </li>
-                            <li class="nav-item">
-                                <form method="post" asp-area="" asp-page="/Account/Logout" class="form-inline">
-                                    <button type="submit" class="nav-link btn btn-link text-dark" style="border: none; background: none; margin: 0; padding: 0.5rem 1rem;">Logout</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Account/Register">Register</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Account/Login">Login</a>
-                            </li>
-                        }
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Doctor" asp-action="Schedule">Doctor Schedule</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Doctor" asp-action="ManageAvailability">Manage Availability</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Doctor" asp-action="PendingAppointments">Pending Appointments</a>
+                        </li>
+
+                        <!-- ✅ NEW ADMIN LINK -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Admin" asp-action="Dashboard">Admin</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                        </li>
+
                     </ul>
                 </div>
             </div>
@@ -86,7 +61,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2026 - MediNote - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2026 - MediNote - <a asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
 
