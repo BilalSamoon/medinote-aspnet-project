@@ -56,7 +56,7 @@ namespace MediNote.Tests
         [Test]
         public void GetDoctorSchedule_ReturnsExpectedDoctorName()
         {
-            var result = _scheduleService.GetDoctorSchedule();
+            var result = _scheduleService.GetDoctorSchedule("Dr. Daniel Guillaumont");
 
             Assert.That(result.DoctorName, Is.EqualTo("Dr. Daniel Guillaumont"));
         }

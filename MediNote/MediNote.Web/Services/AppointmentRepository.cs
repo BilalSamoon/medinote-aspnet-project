@@ -6,6 +6,8 @@ using MediNote.Web.Models;
 
 namespace MediNote.Web.Services
 {
+    // By: Camila Esguerra
+    /// Repository responsible for managing appointment data, including booking, cancellation, status updates, and rescheduling.
     public class AppointmentRepository
     {
         private readonly MediNoteDbContext _context;

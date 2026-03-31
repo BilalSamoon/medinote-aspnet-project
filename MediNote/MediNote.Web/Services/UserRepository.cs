@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MediNote.Web.Services
 {
+    //By: Camila Esguerra
+    /// Repository responsible for user authentication and registration, as well as managing security codes for doctor and admin accounts.
     public class UserRepository
     {
         private readonly MediNoteDbContext _context;

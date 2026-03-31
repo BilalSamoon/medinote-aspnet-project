@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MediNote.Web.ViewModels
 {
+    //By: Camila Esguerra
+    /// ViewModel for patients to request new appointments, including doctor selection, date/time, and symptom description.
     public class PatientAppointmentRequestViewModel
     {
         [Required]
