@@ -12,10 +12,12 @@ namespace MediNote.Web.Services
     public class DoctorAppointmentService
     {
         private readonly MediNoteDbContext _context;
+        private readonly PriorityCalculationService _priorityCalculationService;
 
-        public DoctorAppointmentService(MediNoteDbContext context)
+        public DoctorAppointmentService(MediNoteDbContext context, PriorityCalculationService priorityCalculationService)
         {
             _context = context;
+            _priorityCalculationService = priorityCalculationService;
         }
 
         /// <summary>
@@ -42,7 +44,8 @@ namespace MediNote.Web.Services
                     PatientName = appt.PatientName,
                     DoctorName = appt.DoctorName,
                     RequestedDate = appt.RequestedDate,
-                    Symptoms = appt.Symptoms
+                    Symptoms = appt.Symptoms,
+                    Priority = _priorityCalculationService.GetPriority(appt.Symptoms)
                 });
             }
 

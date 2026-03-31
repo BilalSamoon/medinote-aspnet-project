@@ -50,5 +50,10 @@ namespace MediNote.Web.ViewModels
         /// Gets or sets the symptoms entered by the patient.
         /// </summary>
         public string Symptoms { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the priority of the appointment.
+        /// </summary>
+        public string Priority { get; set; } = "Unknown";
     }
 }

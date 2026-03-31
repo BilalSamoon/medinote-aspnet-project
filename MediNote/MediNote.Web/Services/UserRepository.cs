@@ -59,7 +59,7 @@ namespace MediNote.Web.Services
                 Username = username,
                 Password = password,
                 Role = role,
-                SecurityId = securityId
+                SecurityId = securityId ?? string.Empty
             };
 
             _context.Users.Add(newUser);

@@ -34,7 +34,8 @@ namespace MediNote.Tests
             );
             _context.SaveChanges();
 
-            _scheduleService = new ScheduleService(context);
+            var priorityCalculationService = new PriorityCalculationService();
+            _scheduleService = new ScheduleService(context, priorityCalculationService);
             _appointmentRepository = new AppointmentRepository(context);
         }
 

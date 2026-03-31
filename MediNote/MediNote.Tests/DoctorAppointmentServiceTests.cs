@@ -25,7 +25,8 @@ namespace MediNote.Tests
 
             _context = new MediNoteDbContext(options);
             _appointmentRepository = new AppointmentRepository(_context);
-            _doctorAppointmentService = new DoctorAppointmentService(_context);
+            var priorityCalculationService = new PriorityCalculationService();
+            _doctorAppointmentService = new DoctorAppointmentService(_context, priorityCalculationService);
         }
 
         [TearDown]

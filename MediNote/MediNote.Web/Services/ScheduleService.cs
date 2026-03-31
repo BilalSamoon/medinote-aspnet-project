@@ -12,10 +12,12 @@ namespace MediNote.Web.Services
     public class ScheduleService
     {
         private readonly MediNoteDbContext _context;
+        private readonly PriorityCalculationService _priorityCalculationService;
 
-        public ScheduleService(MediNoteDbContext context)
+        public ScheduleService(MediNoteDbContext context, PriorityCalculationService priorityCalculationService)
         {
             _context = context;
+            _priorityCalculationService = priorityCalculationService;
         }
 
         /// <summary>
@@ -39,8 +41,10 @@ namespace MediNote.Web.Services
                 Appointments = appointments.Select(a => new DoctorScheduleItemViewModel
                 {
                     PatientName = a.PatientName,
+                    DoctorName = a.DoctorName,
                     AppointmentDate = a.RequestedDate,
                     AppointmentTime = a.RequestedTime,
+                    Priority = _priorityCalculationService.GetPriority(a.Symptoms),
                     Status = a.Status
                 }).ToList()
             };

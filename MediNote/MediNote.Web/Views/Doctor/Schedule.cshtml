@@ -24,9 +24,14 @@
             <table class="table table-striped">
                 <thead>
                     <tr>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <th>Doctor</th>
+                        }
                         <th>Patient</th>
                         <th>Date</th>
                         <th>Time</th>
+                        <th>Priority</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -34,9 +39,18 @@
                     @foreach (var appointment in Model.Appointments)
                     {
                         <tr>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <td>@appointment.DoctorName</td>
+                            }
                             <td>@appointment.PatientName</td>
                             <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd")</td>
                             <td>@appointment.AppointmentTime</td>
+                            <td>
+                                @if(appointment.Priority == "HIGH") { <span class="badge bg-danger">HIGH</span> }
+                                else if(appointment.Priority == "MEDIUM") { <span class="badge bg-warning text-dark">MEDIUM</span> }
+                                else { <span class="badge bg-success">@appointment.Priority</span> }
+                            </td>
                             <td>@appointment.Status</td>
                         </tr>
                     }
