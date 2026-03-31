@@ -24,7 +24,8 @@ namespace MediNote.Tests
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            _context = new MediNoteDbContext(options);
+            var context = new MediNoteDbContext(options);
+            _context = context;
 
             _context.Appointments.AddRange(
                 new Appointment { PatientName = "John Doe", DoctorName = "Dr. Daniel Guillaumont", RequestedDate = DateTime.Now, RequestedTime = "10:00 AM" },
@@ -33,8 +34,8 @@ namespace MediNote.Tests
             );
             _context.SaveChanges();
 
-            _appointmentRepository = new AppointmentRepository(_context);
-            _scheduleService = new ScheduleService(_appointmentRepository);
+            _scheduleService = new ScheduleService(context);
+            _appointmentRepository = new AppointmentRepository(context);
         }
 
         [TearDown]

@@ -1,7 +1,7 @@
 using System;
-using MediNote.Web.ViewModels;
-using MediNote.Web.Models;
 using System.Linq;
+using MediNote.Web.ViewModels;
+using MediNote.Web.Data;
 
 namespace MediNote.Web.Services
 {
@@ -11,24 +11,26 @@ namespace MediNote.Web.Services
     /// </summary>
     public class ScheduleService
     {
-        private readonly AppointmentRepository _appointmentRepository;
+        private readonly MediNoteDbContext _context;
 
-        public ScheduleService(AppointmentRepository appointmentRepository)
+        public ScheduleService(MediNoteDbContext context)
         {
-            _appointmentRepository = appointmentRepository;
+            _context = context;
         }
 
         /// <summary>
-        /// Returns sample schedule data for the doctor schedule page.
+        /// Returns schedule data dynamically from the database.
         /// </summary>
         /// <returns>A populated doctor schedule view model.</returns>
         public DoctorScheduleViewModel GetDoctorSchedule(string doctorName = null)
         {
-            var appointments = _appointmentRepository.GetAllAppointments();
+            var query = _context.Appointments.AsQueryable();
             if (!string.IsNullOrEmpty(doctorName))
             {
-                appointments = appointments.Where(a => a.DoctorName == doctorName).ToList();
+                query = query.Where(a => a.DoctorName == doctorName);
             }
+
+            var appointments = query.ToList();
 
             return new DoctorScheduleViewModel
             {

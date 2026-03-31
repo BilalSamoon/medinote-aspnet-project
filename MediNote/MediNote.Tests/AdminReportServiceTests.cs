@@ -1,5 +1,8 @@
 ﻿using MediNote.Web.Services;
 using NUnit.Framework;
+using Microsoft.EntityFrameworkCore;
+using MediNote.Web.Data;
+using System;
 
 namespace MediNote.Tests
 {
@@ -7,12 +10,24 @@ namespace MediNote.Tests
     /// NUnit tests for AdminReportService.
     public class AdminReportServiceTests
     {
+        private MediNoteDbContext _context = null!;
         private AdminReportService _service = null!;
 
         [SetUp]
         public void Setup()
         {
-            _service = new AdminReportService();
+            var options = new DbContextOptionsBuilder<MediNoteDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+
+            _context = new MediNoteDbContext(options);
+            _service = new AdminReportService(_context);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            _context.Dispose();
         }
 
         [Test]

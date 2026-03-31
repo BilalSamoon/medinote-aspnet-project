@@ -35,10 +35,9 @@ namespace MediNote.Web.Pages.Account
             }
 
             var success = _userRepository.RegisterUser(Username, Password, Role);
-
             if (!success)
             {
-                ModelState.AddModelError("", "Username is already taken.");
+                ModelState.AddModelError("", "Username already exists.");
                 return Page();
             }
 
