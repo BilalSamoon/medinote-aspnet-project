@@ -22,6 +22,9 @@ namespace MediNote.Web.Pages.Account
         [BindProperty]
         public string Role { get; set; } = "Patient";
 
+        [BindProperty]
+        public string SecurityId { get; set; } = string.Empty;
+
         public void OnGet()
         {
         }
@@ -34,7 +37,13 @@ namespace MediNote.Web.Pages.Account
                 return Page();
             }
 
-            var success = _userRepository.RegisterUser(Username, Password, Role);
+            if ((Role == "Doctor" || Role == "Admin") && string.IsNullOrEmpty(SecurityId))
+            {
+                ModelState.AddModelError("", "Doctor/Admin ID is required for this role.");
+                return Page();
+            }
+
+            var success = _userRepository.RegisterUser(Username, Password, Role, SecurityId);
             if (!success)
             {
                 ModelState.AddModelError("", "Username already exists.");

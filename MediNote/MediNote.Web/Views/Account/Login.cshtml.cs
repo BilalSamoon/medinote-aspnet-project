@@ -24,6 +24,9 @@ namespace MediNote.Web.Pages.Account
         [BindProperty]
         public string Password { get; set; } = string.Empty;
 
+        [BindProperty]
+        public string SecurityId { get; set; } = string.Empty;
+
         public void OnGet(string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
@@ -38,10 +41,10 @@ namespace MediNote.Web.Pages.Account
             }
 
             // Authenticate against the hardcoded repository
-            var user = _userRepository.Authenticate(Username, Password);
+            var user = _userRepository.Authenticate(Username, Password, SecurityId);
             if (user == null)
             {
-                ModelState.AddModelError("", "Invalid login attempt.");
+                ModelState.AddModelError("", "Invalid login attempt. Check your credentials and Security ID if applicable.");
                 return Page();
             }
 

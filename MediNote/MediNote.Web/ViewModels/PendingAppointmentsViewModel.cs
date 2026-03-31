@@ -37,6 +37,11 @@ namespace MediNote.Web.ViewModels
         public string PatientName { get; set; } = string.Empty;
 
         /// <summary>
+        /// Gets or sets the doctor name.
+        /// </summary>
+        public string DoctorName { get; set; } = string.Empty;
+
+        /// <summary>
         /// Gets or sets the requested date.
         /// </summary>
         public DateTime RequestedDate { get; set; }

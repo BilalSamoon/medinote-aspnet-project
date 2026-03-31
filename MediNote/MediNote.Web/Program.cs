@@ -39,6 +39,16 @@ namespace MediNote.Web
 
             var app = builder.Build();
 
+            // Apply migrations at startup automatically
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<MediNoteDbContext>();
+                
+                // Fix: Drop and recreate database to apply modified InitialCreate migration
+                dbContext.Database.EnsureDeleted();
+                dbContext.Database.Migrate();
+            }
+
             // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {

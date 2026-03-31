@@ -30,11 +30,18 @@
     <div class="form-group row mb-3">
         <label asp-for="Role" class="col-sm-2 col-form-label"></label>
         <div class="col-sm-5">
-            <select asp-for="Role" class="form-control">
+            <select asp-for="Role" class="form-control" id="roleSelect">
                 <option value="Patient">Patient</option>
                 <option value="Doctor">Doctor</option>
                 <option value="Admin">Admin</option>
             </select>
+        </div>
+    </div>
+
+    <div class="form-group row mb-3" id="securityIdGroup" style="display:none;">
+        <label class="col-sm-2 col-form-label">Doctor/Admin ID</label>
+        <div class="col-sm-5">
+            <input asp-for="SecurityId" class="form-control" placeholder="Required for Doctor or Admin" />
         </div>
     </div>
 
@@ -45,3 +52,23 @@
         </div>
     </div>
 </form>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var roleSelect = document.getElementById("roleSelect");
+            var securityGroup = document.getElementById("securityIdGroup");
+
+            function toggleSecurityId() {
+                if (roleSelect.value === "Doctor" || roleSelect.value === "Admin") {
+                    securityGroup.style.display = "flex";
+                } else {
+                    securityGroup.style.display = "none";
+                }
+            }
+
+            roleSelect.addEventListener("change", toggleSecurityId);
+            toggleSecurityId(); // init on load
+        });
+    </script>
+}

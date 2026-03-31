@@ -100,6 +100,10 @@ namespace MediNote.Web.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SecurityId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -114,6 +118,7 @@ namespace MediNote.Web.Migrations
                             Id = 1,
                             Password = "password123",
                             Role = "Doctor",
+                            SecurityId = "DOC123",
                             Username = "doctor1"
                         },
                         new
@@ -121,6 +126,7 @@ namespace MediNote.Web.Migrations
                             Id = 2,
                             Password = "adminpassword",
                             Role = "Admin",
+                            SecurityId = "ADM123",
                             Username = "admin1"
                         },
                         new
@@ -128,6 +134,7 @@ namespace MediNote.Web.Migrations
                             Id = 3,
                             Password = "patientpassword",
                             Role = "Patient",
+                            SecurityId = "",
                             Username = "patient1"
                         });
                 });

@@ -34,7 +34,7 @@ namespace MediNote.Web.Services
 
             return new DoctorScheduleViewModel
             {
-                DoctorName = doctorName ?? "Dr. Daniel Guillaumont",
+                DoctorName = string.IsNullOrEmpty(doctorName) ? "All Doctors" : doctorName,
                 ScheduleDate = DateTime.Now.Date,
                 Appointments = appointments.Select(a => new DoctorScheduleItemViewModel
                 {

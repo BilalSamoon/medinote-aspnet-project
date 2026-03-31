@@ -22,9 +22,16 @@ namespace MediNote.Web.Services
         /// Returns pending appointments directly from the database for display.
         /// </summary>
         /// <returns>A populated pending appointments view model.</returns>
-        public PendingAppointmentsViewModel GetPendingAppointmentsViewModel()
+        public PendingAppointmentsViewModel GetPendingAppointmentsViewModel(string? doctorName = null, bool isAdmin = false)
         {
-            var pendingDb = _context.Appointments.Where(a => a.Status == "Pending").ToList();
+            var query = _context.Appointments.Where(a => a.Status == "Pending");
+            
+            if (!isAdmin && !string.IsNullOrEmpty(doctorName))
+            {
+                query = query.Where(a => a.DoctorName == doctorName);
+            }
+
+            var pendingDb = query.ToList();
             var vm = new PendingAppointmentsViewModel();
 
             foreach(var appt in pendingDb)
@@ -33,6 +40,7 @@ namespace MediNote.Web.Services
                 {
                     AppointmentId = appt.AppointmentId,
                     PatientName = appt.PatientName,
+                    DoctorName = appt.DoctorName,
                     RequestedDate = appt.RequestedDate,
                     Symptoms = appt.Symptoms
                 });

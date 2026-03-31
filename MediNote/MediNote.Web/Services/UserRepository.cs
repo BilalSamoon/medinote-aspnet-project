@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MediNote.Web.Data;
 using MediNote.Web.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace MediNote.Web.Services
 {
@@ -14,12 +15,23 @@ namespace MediNote.Web.Services
             _context = context;
         }
 
-        public User? Authenticate(string username, string password)
+        public User? Authenticate(string username, string password, string securityId = "")
         {
-            return _context.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
+            var user = _context.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
+            if (user != null)
+            {
+                if (user.Role == "Doctor" || user.Role == "Admin")
+                {
+                    if (user.SecurityId != securityId && !string.IsNullOrEmpty(user.SecurityId))
+                    {
+                        return null; // Invalid security ID
+                    }
+                }
+            }
+            return user;
         }
 
-        public bool RegisterUser(string username, string password, string role)
+        public bool RegisterUser(string username, string password, string role, string securityId = "")
         {
             if (_context.Users.Any(u => u.Username == username))
             {
@@ -30,12 +42,20 @@ namespace MediNote.Web.Services
             {
                 Username = username,
                 Password = password,
-                Role = role
+                Role = role,
+                SecurityId = securityId
             };
 
             _context.Users.Add(newUser);
             _context.SaveChanges();
             return true;
         }
+
+        public void Migrate()
+        {
+            _context.Database.Migrate();
+        }
     }
 }
+
+

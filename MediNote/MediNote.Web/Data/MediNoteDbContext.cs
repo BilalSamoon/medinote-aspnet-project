@@ -26,8 +26,8 @@ namespace MediNote.Web.Data
             
             // Seed some default users so you still have some initial accounts to log in with
             modelBuilder.Entity<User>().HasData(
-                new User { Id = 1, Username = "doctor1", Password = "password123", Role = "Doctor" },
-                new User { Id = 2, Username = "admin1", Password = "adminpassword", Role = "Admin" },
+                new User { Id = 1, Username = "doctor1", Password = "password123", Role = "Doctor", SecurityId = "DOC123" },
+                new User { Id = 2, Username = "admin1", Password = "adminpassword", Role = "Admin", SecurityId = "ADM123" },
                 new User { Id = 3, Username = "patient1", Password = "patientpassword", Role = "Patient" }
             );
         }

@@ -14,10 +14,7 @@
     <div class="form-group row mb-3">
         <label asp-for="RequestModel.DoctorName" class="col-sm-2 col-form-label">Doctor</label>
         <div class="col-sm-5">
-            <select asp-for="RequestModel.DoctorName" class="form-control">
-                <option value="Dr. Smith">Dr. Smith</option>
-                <option value="Dr. Adams">Dr. Adams</option>
-                <option value="Dr. Lee">Dr. Lee</option>
+            <select asp-for="RequestModel.DoctorName" asp-items="Model.AvailableDoctors" class="form-control">
             </select>
         </div>
     </div>

@@ -9,7 +9,9 @@ namespace MediNote.Web.Models
     {
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty; // Store plain text for now, should be hashed later
-        public string Role { get; set; } = string.Empty; // "Admin", "Doctor", "Patient"
+        public string Password { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
+        public string SecurityId { get; set; } = string.Empty; // This property exists in the model
     }
 }
+

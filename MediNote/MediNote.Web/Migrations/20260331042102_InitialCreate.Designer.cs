@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MediNote.Web.Migrations
 {
     [DbContext(typeof(MediNoteDbContext))]
-    [Migration("20260330091855_AddAvailabilities")]
-    partial class AddAvailabilities
+    [Migration("20260331042102_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -103,6 +103,10 @@ namespace MediNote.Web.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SecurityId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -117,6 +121,7 @@ namespace MediNote.Web.Migrations
                             Id = 1,
                             Password = "password123",
                             Role = "Doctor",
+                            SecurityId = "DOC123",
                             Username = "doctor1"
                         },
                         new
@@ -124,6 +129,7 @@ namespace MediNote.Web.Migrations
                             Id = 2,
                             Password = "adminpassword",
                             Role = "Admin",
+                            SecurityId = "ADM123",
                             Username = "admin1"
                         },
                         new
@@ -131,6 +137,7 @@ namespace MediNote.Web.Migrations
                             Id = 3,
                             Password = "patientpassword",
                             Role = "Patient",
+                            SecurityId = "",
                             Username = "patient1"
                         });
                 });

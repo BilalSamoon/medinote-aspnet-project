@@ -32,6 +32,22 @@ namespace MediNote.Web.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Availabilities",
+                columns: table => new
+                {
+                    AvailabilityId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DoctorName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AvailableDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    StartTime = table.Column<TimeSpan>(type: "time", nullable: false),
+                    EndTime = table.Column<TimeSpan>(type: "time", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Availabilities", x => x.AvailabilityId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -39,7 +55,8 @@ namespace MediNote.Web.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SecurityId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -48,12 +65,12 @@ namespace MediNote.Web.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Password", "Role", "Username" },
+                columns: new[] { "Id", "Password", "Role", "SecurityId", "Username" },
                 values: new object[,]
                 {
-                    { 1, "password123", "Doctor", "doctor1" },
-                    { 2, "adminpassword", "Admin", "admin1" },
-                    { 3, "patientpassword", "Patient", "patient1" }
+                    { 1, "password123", "Doctor", "DOC123", "doctor1" },
+                    { 2, "adminpassword", "Admin", "ADM123", "admin1" },
+                    { 3, "patientpassword", "Patient", "", "patient1" }
                 });
         }
 
@@ -62,6 +79,9 @@ namespace MediNote.Web.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Appointments");
+
+            migrationBuilder.DropTable(
+                name: "Availabilities");
 
             migrationBuilder.DropTable(
                 name: "Users");
