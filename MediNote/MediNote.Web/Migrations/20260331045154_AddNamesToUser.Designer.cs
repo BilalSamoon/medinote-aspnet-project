@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MediNote.Web.Migrations
 {
     [DbContext(typeof(MediNoteDbContext))]
-    [Migration("20260331042102_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260331045154_AddNamesToUser")]
+    partial class AddNamesToUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

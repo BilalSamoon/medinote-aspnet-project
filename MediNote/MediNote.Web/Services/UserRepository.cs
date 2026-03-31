@@ -31,15 +31,31 @@ namespace MediNote.Web.Services
             return user;
         }
 
-        public bool RegisterUser(string username, string password, string role, string securityId = "")
+        public bool RegisterUser(string firstName, string lastName, string username, string password, string role, string securityId, out string errorMessage)
         {
+            errorMessage = string.Empty;
             if (_context.Users.Any(u => u.Username == username))
             {
-                return false; // Username already exists
+                errorMessage = "Username already exists.";
+                return false;
+            }
+
+            if (role == "Doctor" || role == "Admin")
+            {
+                var validCode = _context.SecurityCodes.FirstOrDefault(c => c.Code == securityId && c.Role == role && !c.IsClaimed);
+                if (validCode == null)
+                {
+                    errorMessage = "Invalid or already claimed Security ID for the selected role.";
+                    return false;
+                }
+
+                validCode.IsClaimed = true; // Mark as claimed
             }
 
             var newUser = new User
             {
+                FirstName = firstName,
+                LastName = lastName,
                 Username = username,
                 Password = password,
                 Role = role,

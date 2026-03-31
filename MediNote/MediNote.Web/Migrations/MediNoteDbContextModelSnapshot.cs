@@ -84,6 +84,67 @@ namespace MediNote.Web.Migrations
                     b.ToTable("Availabilities");
                 });
 
+            modelBuilder.Entity("MediNote.Web.Models.SecurityCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsClaimed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SecurityCodes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Code = "DOC123",
+                            IsClaimed = true,
+                            Role = "Doctor"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Code = "ADM123",
+                            IsClaimed = true,
+                            Role = "Admin"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Code = "DOC456",
+                            IsClaimed = false,
+                            Role = "Doctor"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Code = "DOC789",
+                            IsClaimed = false,
+                            Role = "Doctor"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Code = "ADM456",
+                            IsClaimed = false,
+                            Role = "Admin"
+                        });
+                });
+
             modelBuilder.Entity("MediNote.Web.Models.User", b =>
                 {
                     b.Property<int>("Id")
@@ -91,6 +152,14 @@ namespace MediNote.Web.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -116,6 +185,8 @@ namespace MediNote.Web.Migrations
                         new
                         {
                             Id = 1,
+                            FirstName = "John",
+                            LastName = "Doe",
                             Password = "password123",
                             Role = "Doctor",
                             SecurityId = "DOC123",
@@ -124,6 +195,8 @@ namespace MediNote.Web.Migrations
                         new
                         {
                             Id = 2,
+                            FirstName = "Alice",
+                            LastName = "Admin",
                             Password = "adminpassword",
                             Role = "Admin",
                             SecurityId = "ADM123",
@@ -132,6 +205,8 @@ namespace MediNote.Web.Migrations
                         new
                         {
                             Id = 3,
+                            FirstName = "Bob",
+                            LastName = "Patient",
                             Password = "patientpassword",
                             Role = "Patient",
                             SecurityId = "",

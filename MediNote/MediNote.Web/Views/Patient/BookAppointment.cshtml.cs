@@ -58,7 +58,8 @@ namespace MediNote.Web.Pages.Patient
 
         private void PopulateDoctors()
         {
-            var doctors = _context.Users.Where(u => u.Role == "Doctor").Select(u => u.Username).ToList();
+            var doctors = _context.Users.Where(u => u.Role == "Doctor")
+                .Select(u => u.FirstName + " " + u.LastName).ToList();
             if(!doctors.Any())
             {
                 doctors.Add("Dr. Smith"); // fallback

@@ -50,7 +50,8 @@ namespace MediNote.Web.Pages.Account
 
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}".Trim()),
+                new Claim("Username", user.Username),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Role, user.Role)
             };

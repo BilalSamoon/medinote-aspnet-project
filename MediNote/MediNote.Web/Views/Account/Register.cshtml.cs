@@ -14,6 +14,12 @@ namespace MediNote.Web.Pages.Account
         }
 
         [BindProperty]
+        public string FirstName { get; set; } = string.Empty;
+
+        [BindProperty]
+        public string LastName { get; set; } = string.Empty;
+
+        [BindProperty]
         public string Username { get; set; } = string.Empty;
 
         [BindProperty]
@@ -31,9 +37,9 @@ namespace MediNote.Web.Pages.Account
 
         public IActionResult OnPost()
         {
-            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
+            if (string.IsNullOrEmpty(FirstName) || string.IsNullOrEmpty(LastName) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
             {
-                ModelState.AddModelError("", "Username and password are required.");
+                ModelState.AddModelError("", "First Name, Last Name, Username, and Password are required.");
                 return Page();
             }
 
@@ -43,10 +49,10 @@ namespace MediNote.Web.Pages.Account
                 return Page();
             }
 
-            var success = _userRepository.RegisterUser(Username, Password, Role, SecurityId);
+            var success = _userRepository.RegisterUser(FirstName, LastName, Username, Password, Role, SecurityId, out string errorMessage);
             if (!success)
             {
-                ModelState.AddModelError("", "Username already exists.");
+                ModelState.AddModelError("", errorMessage);
                 return Page();
             }
 

@@ -53,6 +53,8 @@ namespace MediNote.Web.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    FirstName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -65,12 +67,12 @@ namespace MediNote.Web.Migrations
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "Password", "Role", "SecurityId", "Username" },
+                columns: new[] { "Id", "FirstName", "LastName", "Password", "Role", "SecurityId", "Username" },
                 values: new object[,]
                 {
-                    { 1, "password123", "Doctor", "DOC123", "doctor1" },
-                    { 2, "adminpassword", "Admin", "ADM123", "admin1" },
-                    { 3, "patientpassword", "Patient", "", "patient1" }
+                    { 1, "John", "Doe", "password123", "Doctor", "DOC123", "doctor1" },
+                    { 2, "Alice", "Admin", "adminpassword", "Admin", "ADM123", "admin1" },
+                    { 3, "Bob", "Patient", "patientpassword", "Patient", "", "patient1" }
                 });
         }
 
