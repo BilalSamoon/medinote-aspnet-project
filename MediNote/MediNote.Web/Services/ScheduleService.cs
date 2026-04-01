@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using MediNote.Web.ViewModels;
+using MediNote.Web.Data;
 
 namespace MediNote.Web.Services
 {
@@ -9,40 +11,42 @@ namespace MediNote.Web.Services
     /// </summary>
     public class ScheduleService
     {
+        private readonly MediNoteDbContext _context;
+        private readonly PriorityCalculationService _priorityCalculationService;
+
+        public ScheduleService(MediNoteDbContext context, PriorityCalculationService priorityCalculationService)
+        {
+            _context = context;
+            _priorityCalculationService = priorityCalculationService;
+        }
+
         /// <summary>
-        /// Returns sample schedule data for the doctor schedule page.
+        /// Returns schedule data dynamically from the database.
         /// </summary>
         /// <returns>A populated doctor schedule view model.</returns>
-        public DoctorScheduleViewModel GetDoctorSchedule()
+        public DoctorScheduleViewModel GetDoctorSchedule(string doctorName = null)
         {
+            var query = _context.Appointments.AsQueryable();
+            if (!string.IsNullOrEmpty(doctorName))
+            {
+                query = query.Where(a => a.DoctorName == doctorName);
+            }
+
+            var appointments = query.ToList();
+
             return new DoctorScheduleViewModel
             {
-                DoctorName = "Dr. Daniel Guillaumont",
-                ScheduleDate = new DateTime(2026, 3, 29),
-                Appointments =
+                DoctorName = string.IsNullOrEmpty(doctorName) ? "All Doctors" : doctorName,
+                ScheduleDate = DateTime.Now.Date,
+                Appointments = appointments.Select(a => new DoctorScheduleItemViewModel
                 {
-                    new DoctorScheduleItemViewModel
-                    {
-                        PatientName = "Victoria Zhou",
-                        AppointmentDate = new DateTime(2026, 3, 29),
-                        AppointmentTime = "9:00 AM",
-                        Status = "Approved"
-                    },
-                    new DoctorScheduleItemViewModel
-                    {
-                        PatientName = "Aidan Kumar",
-                        AppointmentDate = new DateTime(2026, 3, 29),
-                        AppointmentTime = "11:30 AM",
-                        Status = "Pending"
-                    },
-                    new DoctorScheduleItemViewModel
-                    {
-                        PatientName = "Jamal Ishani",
-                        AppointmentDate = new DateTime(2026, 3, 29),
-                        AppointmentTime = "2:00 PM",
-                        Status = "Rescheduled"
-                    }
-                }
+                    PatientName = a.PatientName,
+                    DoctorName = a.DoctorName,
+                    AppointmentDate = a.RequestedDate,
+                    AppointmentTime = a.RequestedTime,
+                    Priority = _priorityCalculationService.GetPriority(a.Symptoms),
+                    Status = a.Status
+                }).ToList()
             };
         }
     }

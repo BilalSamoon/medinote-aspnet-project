@@ -37,6 +37,11 @@ namespace MediNote.Web.ViewModels
         public string PatientName { get; set; } = string.Empty;
 
         /// <summary>
+        /// Gets or sets the assigned doctor name.
+        /// </summary>
+        public string DoctorName { get; set; } = string.Empty;
+
+        /// <summary>
         /// Gets or sets the appointment date.
         /// </summary>
         public DateTime AppointmentDate { get; set; }
@@ -45,6 +50,11 @@ namespace MediNote.Web.ViewModels
         /// Gets or sets the appointment time as display text.
         /// </summary>
         public string AppointmentTime { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the priority of the appointment.
+        /// </summary>
+        public string Priority { get; set; } = "Unknown";
 
         /// <summary>
         /// Gets or sets the appointment status.

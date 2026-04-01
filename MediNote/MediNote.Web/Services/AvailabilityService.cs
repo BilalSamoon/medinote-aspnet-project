@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using MediNote.Web.Data;
 using MediNote.Web.Models;
 using MediNote.Web.ViewModels;
 
@@ -11,6 +13,17 @@ namespace MediNote.Web.Services
     /// </summary>
     public class AvailabilityService
     {
+        private readonly MediNoteDbContext _context;
+
+        public AvailabilityService(MediNoteDbContext context)
+        {
+            _context = context;
+        }
+
+        public AvailabilityService()
+        {
+        }
+
         /// <summary>
         /// Returns the manage availability page model with sample data.
         /// </summary>
@@ -24,30 +37,18 @@ namespace MediNote.Web.Services
         }
 
         /// <summary>
-        /// Returns sample availability slots for display.
+        /// Returns availability slots for display.
         /// </summary>
-        /// <returns>A list of sample availability slots.</returns>
+        /// <returns>A list of availability slots.</returns>
         public List<Availability> GetSampleAvailabilitySlots()
         {
-            return new List<Availability>
-            {
-                new Availability
-                {
-                    AvailabilityId = 1,
-                    DoctorName = "Dr. Daniel Guillaumont",
-                    AvailableDate = new DateTime(2026, 3, 30),
-                    StartTime = new TimeSpan(9, 0, 0),
-                    EndTime = new TimeSpan(12, 0, 0)
-                },
-                new Availability
-                {
-                    AvailabilityId = 2,
-                    DoctorName = "Dr. Daniel Guillaumont",
-                    AvailableDate = new DateTime(2026, 3, 31),
-                    StartTime = new TimeSpan(1, 0, 0),
-                    EndTime = new TimeSpan(4, 0, 0)
-                }
-            };
+            return _context.Availabilities.ToList();
+        }
+
+        public void AddAvailability(Availability availability)
+        {
+            _context.Availabilities.Add(availability);
+            _context.SaveChanges();
         }
 
         /// <summary>

@@ -18,6 +18,7 @@
         <tr>
             <th>ID</th>
             <th>Patient</th>
+            <th>Doctor</th>
             <th>Date</th>
             <th>Symptoms</th>
             <th>Priority</th>
@@ -28,7 +29,7 @@
         @if (!Model.PendingAppointments.Any())
         {
             <tr>
-                <td colspan="6" class="text-center text-muted">
+                <td colspan="7" class="text-center text-muted">
                     No pending appointments.
                 </td>
             </tr>
@@ -37,30 +38,19 @@
         {
             @foreach (var item in Model.PendingAppointments)
             {
-                var symptoms = item.Symptoms.ToLower();
-                string priority = "LOW";
-
-                if (symptoms.Contains("chest") || symptoms.Contains("heart") || symptoms.Contains("breathing"))
-                {
-                    priority = "HIGH";
-                }
-                else if (symptoms.Contains("fever") || symptoms.Contains("infection") || symptoms.Contains("pain"))
-                {
-                    priority = "MEDIUM";
-                }
-
                 <tr>
                     <td>@item.AppointmentId</td>
                     <td>@item.PatientName</td>
+                    <td>@item.DoctorName</td>
                     <td>@item.RequestedDate.ToShortDateString()</td>
                     <td>@item.Symptoms</td>
 
                     <td>
-                        @if (priority == "HIGH")
+                        @if (item.Priority == "HIGH")
                         {
                             <span class="badge bg-danger">HIGH</span>
                         }
-                        else if (priority == "MEDIUM")
+                        else if (item.Priority == "MEDIUM")
                         {
                             <span class="badge bg-warning text-dark">MEDIUM</span>
                         }

@@ -1,13 +1,18 @@
-﻿namespace MediNote.Web.Models
+using System;
+
+namespace MediNote.Web.Models
 {
-    /// Author: Bilal Ahmed Samoon
-    /// Represents an appointment entity for database persistence.
+
+    //By: Camila Esguerra
+    // Represents an appointment request made by a patient to see a doctor. Contains details about the patient, doctor, requested date and time, symptoms, and the status of the appointment.
     public class Appointment
     {
-        public int Id { get; set; }
+        public int AppointmentId { get; set; }
         public string PatientName { get; set; } = string.Empty;
+        public string DoctorName { get; set; } = string.Empty;
+        public DateTime RequestedDate { get; set; }
+        public string RequestedTime { get; set; } = string.Empty;
         public string Symptoms { get; set; } = string.Empty;
-        public DateTime Date { get; set; }
-        public string Status { get; set; } = "Pending";
+        public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected, Cancelled
     }
 }

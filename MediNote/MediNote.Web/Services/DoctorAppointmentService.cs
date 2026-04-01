@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using MediNote.Web.ViewModels;
+using MediNote.Web.Data;
 
 namespace MediNote.Web.Services
 {
@@ -9,80 +11,97 @@ namespace MediNote.Web.Services
     /// </summary>
     public class DoctorAppointmentService
     {
-        /// <summary>
-        /// Returns sample pending appointments for display.
-        /// </summary>
-        /// <returns>A populated pending appointments view model.</returns>
-        public PendingAppointmentsViewModel GetPendingAppointmentsViewModel()
+        private readonly MediNoteDbContext _context;
+        private readonly PriorityCalculationService _priorityCalculationService;
+
+        public DoctorAppointmentService(MediNoteDbContext context, PriorityCalculationService priorityCalculationService)
         {
-            return new PendingAppointmentsViewModel
-            {
-                PendingAppointments =
-                {
-                    new PendingAppointmentItemViewModel
-                    {
-                        AppointmentId = 1,
-                        PatientName = "Emma Wilson",
-                        RequestedDate = new DateTime(2026, 3, 30),
-                        Symptoms = "Headache and fever"
-                    },
-                    new PendingAppointmentItemViewModel
-                    {
-                        AppointmentId = 2,
-                        PatientName = "David Brown",
-                        RequestedDate = new DateTime(2026, 3, 31),
-                        Symptoms = "Chest discomfort"
-                    }
-                }
-            };
+            _context = context;
+            _priorityCalculationService = priorityCalculationService;
         }
 
         /// <summary>
-        /// Returns an approval message for a selected appointment.
+        /// Returns pending appointments directly from the database for display.
+        /// </summary>
+        /// <returns>A populated pending appointments view model.</returns>
+        public PendingAppointmentsViewModel GetPendingAppointmentsViewModel(string? doctorName = null, bool isAdmin = false)
+        {
+            var query = _context.Appointments.Where(a => a.Status == "Pending");
+            
+            if (!isAdmin && !string.IsNullOrEmpty(doctorName))
+            {
+                query = query.Where(a => a.DoctorName == doctorName);
+            }
+
+            var pendingDb = query.ToList();
+            var vm = new PendingAppointmentsViewModel();
+
+            foreach(var appt in pendingDb)
+            {
+                vm.PendingAppointments.Add(new PendingAppointmentItemViewModel
+                {
+                    AppointmentId = appt.AppointmentId,
+                    PatientName = appt.PatientName,
+                    DoctorName = appt.DoctorName,
+                    RequestedDate = appt.RequestedDate,
+                    Symptoms = appt.Symptoms,
+                    Priority = _priorityCalculationService.GetPriority(appt.Symptoms)
+                });
+            }
+
+            return vm;
+        }
+
+        /// <summary>
+        /// Approves a selected appointment in the database.
         /// </summary>
         /// <param name="appointmentId">The appointment ID.</param>
         /// <returns>A success message.</returns>
         public string ApproveAppointment(int appointmentId)
         {
-            return $"Appointment #{appointmentId} was approved successfully.";
+            var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == appointmentId);
+            if (appointment != null)
+            {
+                appointment.Status = "Approved";
+                _context.SaveChanges();
+                return $"Appointment #{appointmentId} was approved successfully.";
+            }
+            return $"Appointment #{appointmentId} not found.";
         }
 
         /// <summary>
-        /// Returns a rejection message for a selected appointment.
+        /// Rejects a selected appointment in the database.
         /// </summary>
         /// <param name="appointmentId">The appointment ID.</param>
         /// <returns>A success message.</returns>
         public string RejectAppointment(int appointmentId)
         {
-            return $"Appointment #{appointmentId} was rejected successfully.";
+            var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == appointmentId);
+            if (appointment != null)
+            {
+                appointment.Status = "Rejected";
+                _context.SaveChanges();
+                return $"Appointment #{appointmentId} was rejected successfully.";
+            }
+            return $"Appointment #{appointmentId} not found.";
         }
 
         /// <summary>
-        /// Returns sample appointment details for the reschedule page.
+        /// Retrieves appointment details for the reschedule page.
         /// </summary>
         /// <param name="appointmentId">The appointment ID.</param>
         /// <returns>A populated reschedule appointment view model.</returns>
         public RescheduleAppointmentViewModel GetRescheduleViewModel(int appointmentId)
         {
-            if (appointmentId == 1)
+            var appt = _context.Appointments.FirstOrDefault(a => a.AppointmentId == appointmentId);
+            if (appt != null)
             {
                 return new RescheduleAppointmentViewModel
                 {
-                    AppointmentId = 1,
-                    PatientName = "Emma Wilson",
-                    CurrentDate = new DateTime(2026, 3, 30),
-                    CurrentTime = "10:00 AM"
-                };
-            }
-
-            if (appointmentId == 2)
-            {
-                return new RescheduleAppointmentViewModel
-                {
-                    AppointmentId = 2,
-                    PatientName = "David Brown",
-                    CurrentDate = new DateTime(2026, 3, 31),
-                    CurrentTime = "1:30 PM"
+                    AppointmentId = appt.AppointmentId,
+                    PatientName = appt.PatientName,
+                    CurrentDate = appt.RequestedDate,
+                    CurrentTime = appt.RequestedTime
                 };
             }
 
@@ -102,40 +121,48 @@ namespace MediNote.Web.Services
         /// <returns>True if the appointment is eligible; otherwise false.</returns>
         public bool IsAppointmentEligibleForReschedule(int appointmentId)
         {
-            return appointmentId == 1 || appointmentId == 2;
+            var appt = _context.Appointments.FirstOrDefault(a => a.AppointmentId == appointmentId);
+            return appt != null && appt.Status != "Cancelled" && appt.Status != "Rejected";
         }
 
         /// <summary>
-        /// Checks whether the selected new appointment slot conflicts with existing booked times.
+        /// Checks whether the selected new appointment slot conflicts with existing booked times in the database.
         /// </summary>
         /// <param name="newDate">The new selected date.</param>
         /// <param name="newTime">The new selected time.</param>
         /// <returns>True if there is a conflict; otherwise false.</returns>
         public bool HasRescheduleConflict(DateTime newDate, TimeSpan newTime)
         {
-            bool firstConflict =
-                newDate.Date == new DateTime(2026, 3, 29).Date &&
-                newTime == new TimeSpan(9, 0, 0);
-
-            bool secondConflict =
-                newDate.Date == new DateTime(2026, 3, 29).Date &&
-                newTime == new TimeSpan(11, 30, 0);
-
-            bool thirdConflict =
-                newDate.Date == new DateTime(2026, 3, 29).Date &&
-                newTime == new TimeSpan(14, 0, 0);
-
-            return firstConflict || secondConflict || thirdConflict;
+            var formattedTime = newTime.ToString(@"hh\:mm");
+            
+            return _context.Appointments.Any(a => 
+                a.RequestedDate.Date == newDate.Date && 
+                a.RequestedTime == formattedTime && 
+                a.Status != "Cancelled" && 
+                a.Status != "Rejected");
         }
 
         /// <summary>
-        /// Returns a success message for a completed reschedule.
+        /// Saves a completed reschedule sequence to the database.
         /// </summary>
         /// <param name="appointmentId">The appointment ID.</param>
+        /// <param name="newDate">The new selected date.</param>
+        /// <param name="newTime">The new selected time.</param>
         /// <returns>A success message.</returns>
-        public string ConfirmReschedule(int appointmentId)
+        public string ConfirmReschedule(int appointmentId, DateTime newDate, TimeSpan newTime)
         {
-            return $"Appointment #{appointmentId} was rescheduled successfully.";
+            var formattedTime = newTime.ToString(@"hh\:mm");
+            var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == appointmentId);
+            
+            if (appointment != null)
+            {
+                appointment.RequestedDate = newDate;
+                appointment.RequestedTime = formattedTime;
+                _context.SaveChanges();
+                return $"Appointment #{appointmentId} was rescheduled successfully.";
+            }
+            
+            return $"Failed to reschedule Appointment #{appointmentId}.";
         }
     }
 }

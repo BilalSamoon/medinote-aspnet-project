@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="MediNote.Tests/MediNote.Tests.csproj" />
   <Project Path="MediNote.Web/MediNote.Web.csproj" />
 </Solution>

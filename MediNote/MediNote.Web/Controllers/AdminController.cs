@@ -1,29 +1,35 @@
 ﻿using System.Linq;
+using   MediNote.Web.Data;
 using MediNote.Web.Services;
 using MediNote.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MediNote.Web.Controllers
 {
     /// Author: Bilal Ahmed Samoon
     /// Controller responsible for admin-related pages such as dashboard, reports, and appointment priority review.
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly DoctorAppointmentService _doctorAppointmentService;
         private readonly ScheduleService _scheduleService;
         private readonly PriorityCalculationService _priorityCalculationService;
         private readonly AdminReportService _adminReportService;
+        private readonly MediNoteDbContext _context;
 
         public AdminController(
             DoctorAppointmentService doctorAppointmentService,
             ScheduleService scheduleService,
             PriorityCalculationService priorityCalculationService,
-            AdminReportService adminReportService)
+            AdminReportService adminReportService,
+            MediNoteDbContext context)
         {
             _doctorAppointmentService = doctorAppointmentService;
             _scheduleService = scheduleService;
             _priorityCalculationService = priorityCalculationService;
             _adminReportService = adminReportService;
+            _context = context;
         }
 
         public IActionResult Dashboard()
@@ -36,11 +42,9 @@ namespace MediNote.Web.Controllers
             var pendingAppointmentsModel = _doctorAppointmentService.GetPendingAppointmentsViewModel();
             var doctorScheduleModel = _scheduleService.GetDoctorSchedule();
 
-            ViewBag.TotalAppointments = _adminReportService.GetTotalAppointments(
-                doctorScheduleModel.Appointments.Count);
+            ViewBag.TotalAppointments = _adminReportService.GetTotalAppointments(_context.Appointments.Count());
 
-            ViewBag.PendingAppointments = _adminReportService.GetPendingAppointments(
-                pendingAppointmentsModel.PendingAppointments.Count);
+            ViewBag.PendingAppointments = _adminReportService.GetPendingAppointments(_context.Appointments.Count(a => a.Status == "Pending"));
 
             return View();
         }

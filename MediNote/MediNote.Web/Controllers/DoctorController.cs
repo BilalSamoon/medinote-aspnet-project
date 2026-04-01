@@ -11,6 +11,7 @@ namespace MediNote.Web.Controllers
     /// Controller responsible for doctor-related pages such as schedule,
     /// availability management, pending appointments, and rescheduling.
     /// </summary>
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Doctor,Admin")]
     public class DoctorController : Controller
     {
         /// <summary>
@@ -50,7 +51,8 @@ namespace MediNote.Web.Controllers
         /// <returns>The Schedule view.</returns>
         public IActionResult Schedule()
         {
-            var model = _scheduleService.GetDoctorSchedule();
+            var doctorName = User.IsInRole("Admin") ? null : User.Identity?.Name;
+            var model = _scheduleService.GetDoctorSchedule(doctorName);
             return View(model);
         }
 
@@ -111,6 +113,14 @@ namespace MediNote.Web.Controllers
                 return View(model);
             }
 
+            _availabilityService.AddAvailability(new Availability
+            {
+                DoctorName = User.Identity?.Name ?? "Unknown Doctor",
+                AvailableDate = model.AvailableDate.Value,
+                StartTime = model.StartTime.Value,
+                EndTime = model.EndTime.Value
+            });
+
             var refreshedModel = _availabilityService.GetManageAvailabilityViewModel();
 
             if (refreshedModel == null)
@@ -134,7 +144,7 @@ namespace MediNote.Web.Controllers
         [HttpGet]
         public IActionResult PendingAppointments()
         {
-            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
+            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel(User.Identity?.Name, User.IsInRole("Admin"));
             return View(model);
         }
 
@@ -146,8 +156,9 @@ namespace MediNote.Web.Controllers
         [HttpPost]
         public IActionResult ApprovePendingAppointment(int id)
         {
-            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
-            model.StatusMessage = _doctorAppointmentService.ApproveAppointment(id);
+            string message = _doctorAppointmentService.ApproveAppointment(id);
+            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel(User.Identity?.Name, User.IsInRole("Admin"));
+            model.StatusMessage = message;
             return View("PendingAppointments", model);
         }
 
@@ -159,8 +170,9 @@ namespace MediNote.Web.Controllers
         [HttpPost]
         public IActionResult RejectPendingAppointment(int id)
         {
-            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
-            model.StatusMessage = _doctorAppointmentService.RejectAppointment(id);
+            string message = _doctorAppointmentService.RejectAppointment(id);
+            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel(User.Identity?.Name, User.IsInRole("Admin"));
+            model.StatusMessage = message;
             return View("PendingAppointments", model);
         }
 
@@ -207,8 +219,9 @@ namespace MediNote.Web.Controllers
                 return View(model);
             }
 
+            string statusMessage = _doctorAppointmentService.ConfirmReschedule(model.AppointmentId, model.NewDate!.Value, model.NewTime!.Value);
             var refreshedModel = _doctorAppointmentService.GetRescheduleViewModel(model.AppointmentId);
-            refreshedModel.StatusMessage = _doctorAppointmentService.ConfirmReschedule(model.AppointmentId);
+            refreshedModel.StatusMessage = statusMessage;
             return View(refreshedModel);
         }
     }

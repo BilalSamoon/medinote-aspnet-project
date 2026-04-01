@@ -28,6 +28,7 @@
                         <th>Patient</th>
                         <th>Requested Date</th>
                         <th>Symptoms</th>
+                        <th>Priority</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -40,6 +41,11 @@
                                 <td>@appointment.PatientName</td>
                                 <td>@appointment.RequestedDate.ToString("yyyy-MM-dd")</td>
                                 <td>@appointment.Symptoms</td>
+                                <td>
+                                    @if(appointment.Priority == "HIGH") { <span class="badge bg-danger">HIGH</span> }
+                                    else if(appointment.Priority == "MEDIUM") { <span class="badge bg-warning text-dark">MEDIUM</span> }
+                                    else { <span class="badge bg-success">@appointment.Priority</span> }
+                                </td>
                                 <td>
                                     <form asp-action="ApprovePendingAppointment" method="post" class="d-inline">
                                         <input type="hidden" name="id" value="@appointment.AppointmentId" />
