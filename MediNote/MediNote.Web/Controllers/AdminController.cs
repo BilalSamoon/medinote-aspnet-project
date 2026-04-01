@@ -1,9 +1,11 @@
 ﻿using System.Linq;
-using   MediNote.Web.Data;
+using MediNote.Web.Data;
 using MediNote.Web.Services;
 using MediNote.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Net.Http.Json;
+using MediNote.Web.Models;
 
 namespace MediNote.Web.Controllers
 {
@@ -32,23 +34,40 @@ namespace MediNote.Web.Controllers
             _context = context;
         }
 
-        public IActionResult Dashboard()
+        // DASHBOARD → API
+        public async Task<IActionResult> Dashboard()
         {
+            using var client = new HttpClient();
+
+            var url = "https://localhost:7023/api/admin/stats";
+
+            var stats = await client.GetFromJsonAsync<AdminStatsDto>(url);
+
+            ViewBag.TotalAppointments = stats?.Total ?? 0;
+            ViewBag.PendingAppointments = stats?.Pending ?? 0;
+
             return View();
         }
 
-        public IActionResult Reports()
+        //REPORTS → API
+        public async Task<IActionResult> Reports(string status)
         {
-            var pendingAppointmentsModel = _doctorAppointmentService.GetPendingAppointmentsViewModel();
-            var doctorScheduleModel = _scheduleService.GetDoctorSchedule();
+            using var client = new HttpClient();
 
-            ViewBag.TotalAppointments = _adminReportService.GetTotalAppointments(_context.Appointments.Count());
+            var url = "https://localhost:7023/api/admin/all";
 
-            ViewBag.PendingAppointments = _adminReportService.GetPendingAppointments(_context.Appointments.Count(a => a.Status == "Pending"));
+            var data = await client.GetFromJsonAsync<List<Appointment>>(url)
+                       ?? new List<Appointment>();
 
-            return View();
+            if (!string.IsNullOrEmpty(status))
+            {
+                data = data.Where(a => a.Status == status).ToList();
+            }
+
+            return View(data);
         }
 
+       
         public IActionResult PriorityReport()
         {
             var pendingAppointmentsModel = _doctorAppointmentService.GetPendingAppointmentsViewModel();
@@ -89,5 +108,12 @@ namespace MediNote.Web.Controllers
 
             return View("ManageAppointments", model);
         }
+    }
+
+    // DTO for API stats
+    public class AdminStatsDto
+    {
+        public int Total { get; set; }
+        public int Pending { get; set; }
     }
 }

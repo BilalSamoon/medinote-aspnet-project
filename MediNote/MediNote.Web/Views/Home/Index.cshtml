@@ -2,113 +2,40 @@
     ViewData["Title"] = "Home";
 }
 
-<div class="container mt-4">
-    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
-        <div class="container-fluid py-4">
-            <h1 class="display-5 fw-bold">Welcome to MediNote</h1>
-            <p class="col-md-10 fs-5">
-                MediNote is a web-based medical appointment management system designed to help
-                patients, doctors, and administrators manage scheduling more efficiently.
-            </p>
-            <p class="col-md-10">
-                The system supports appointment booking, doctor availability management,
-                approval and rejection of requests, and appointment rescheduling.
-            </p>
-            <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-primary btn-lg">
-                Go to Doctor Schedule
-            </a>
-        </div>
-    </div>
+<div class="text-center mt-5">
 
-    <div class="row g-4">
+    <h1 class="display-4">Welcome to MediNote</h1>
 
-        <!-- Doctor -->
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    Doctor Features
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">Manage the doctor workflow</h5>
-                    <p class="card-text">
-                        View schedules, manage availability, review pending appointments,
-                        and reschedule patient visits.
-                    </p>
-                    <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-outline-primary btn-sm me-2">
-                        Schedule
-                    </a>
-                    <a asp-controller="Doctor" asp-action="ManageAvailability" class="btn btn-outline-primary btn-sm">
-                        Availability
-                    </a>
-                </div>
-            </div>
-        </div>
+    <p class="lead">
+        A healthcare appointment management system designed to streamline scheduling,
+        improve efficiency, and prioritize patient needs.
+    </p>
 
-        <!-- Patient -->
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-success text-white">
-                    Patient Features
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">Support patient appointment needs</h5>
-                    <p class="card-text">
-                        Patients can register, log in, request appointments, submit symptoms,
-                        and track their appointment status.
-                    </p>
-                    <button class="btn btn-outline-success btn-sm" disabled>
-                        Patient Module Coming Soon
-                    </button>
-                </div>
-            </div>
-        </div>
+    <hr class="my-4" />
 
-        <!-- ADMIN -->
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-dark text-white">
-                    Admin Features
-                </div>
-                <div class="card-body">
-                    <h5 class="card-title">System administration tools</h5>
-                    <p class="card-text">
-                        Administrators manage users, assign roles, configure system settings,
-                        and review reports.
-                    </p>
-                    <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-dark btn-sm">
-                        Open Admin Dashboard
-                    </a>
-                </div>
-            </div>
-        </div>
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <p>Please login or register to continue.</p>
 
-    </div>
+        <a class="btn btn-primary me-2" asp-page="/Account/Login">Login</a>
+        <a class="btn btn-outline-secondary" asp-page="/Account/Register">Register</a>
+    }
+    else
+    {
+        <p class="mb-3">Welcome back, @User.Identity.Name!</p>
 
-    <div class="row mt-4 g-4">
-        <div class="col-md-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">
-                    Quick Navigation
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-outline-secondary">
-                            Doctor Schedule
-                        </a>
-                        <a asp-controller="Doctor" asp-action="PendingAppointments" class="btn btn-outline-secondary">
-                            Pending Appointments
-                        </a>
-                        <a asp-controller="Doctor" asp-action="ManageAvailability" class="btn btn-outline-secondary">
-                            Manage Availability
-                        </a>
+        @if (User.IsInRole("Patient"))
+        {
+            <a class="btn btn-primary" asp-page="/Patient/Dashboard">Go to Dashboard</a>
+        }
+        else if (User.IsInRole("Doctor"))
+        {
+            <a class="btn btn-primary" asp-controller="Doctor" asp-action="Schedule">View Schedule</a>
+        }
+        else if (User.IsInRole("Admin"))
+        {
+            <a class="btn btn-primary" asp-controller="Admin" asp-action="Dashboard">Admin Panel</a>
+        }
+    }
 
-                        <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-secondary">
-                            Admin Dashboard
-                        </a>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>

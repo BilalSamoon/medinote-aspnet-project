@@ -16,14 +16,14 @@ namespace MediNote.Web.Services
             _context = context;
         }
 
-        public int GetTotalAppointments(int count)
+        public int GetTotalAppointments()
         {
-            return count;
+            return _context.Appointments.Count();
         }
 
-        public int GetPendingAppointments(int count)
+        public int GetPendingAppointments()
         {
-            return count;
+            return _context.Appointments.Count(a => a.Status == "Pending");
         }
     }
 }
