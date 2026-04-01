@@ -19,7 +19,7 @@ namespace MediNote.API.Controllers
             _context = context;
         }
 
-        // Get statistics (already used)
+        // Get statistics 
         [HttpGet("stats")]
         public IActionResult GetStats()
         {
@@ -30,7 +30,7 @@ namespace MediNote.API.Controllers
             });
         }
 
-        // NEW: Get ALL appointments (for Reports)
+        // Get ALL appointments
         [HttpGet("all")]
         public IActionResult GetAllAppointments()
         {
