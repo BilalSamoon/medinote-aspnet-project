@@ -1,42 +1,45 @@
 @model MediNote.Web.ViewModels.DoctorScheduleViewModel
-
 @{
     ViewData["Title"] = "Doctor Schedule";
 }
 
-<div class="container mt-4">
-    <h1 class="mb-3">Doctor Schedule</h1>
-    <p class="text-muted">
-        This page allows the doctor to view scheduled appointments.
-    </p>
-    <p class="text-muted">
-        <strong>Doctor:</strong> @Model.DoctorName
-    </p>
-    <p class="text-muted">
-        <strong>Schedule Date:</strong> @Model.ScheduleDate.ToString("yyyy-MM-dd")
-    </p>
+<div class="portal-header mb-4">
+    <div>
+        <span class="eyebrow">Doctor Workspace</span>
+        <h1>@Model.DoctorName schedule</h1>
+        <p class="text-muted mb-0">Review upcoming appointments and jump into each appointment record.</p>
+    </div>
+    <a asp-controller="Doctor" asp-action="ManageAvailability" class="btn btn-primary btn-lg">Manage Availability</a>
+</div>
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-            Today's Appointments
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+        <div>
+            <h3 class="mb-0">Appointments</h3>
+            <div class="text-muted">Showing entries from @Model.ScheduleDate.ToString("yyyy-MM-dd") onward</div>
         </div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <th>Doctor</th>
-                        }
-                        <th>Patient</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Priority</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var appointment in Model.Appointments)
+    </div>
+
+    <div class="table-responsive">
+        <table class="table appointment-table align-middle">
+            <thead>
+                <tr>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th>Doctor</th>
+                    }
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Appointments.Any())
+                {
+                    foreach (var appointment in Model.Appointments)
                     {
                         <tr>
                             @if (User.IsInRole("Admin"))
@@ -47,15 +50,33 @@
                             <td>@appointment.AppointmentDate.ToString("yyyy-MM-dd")</td>
                             <td>@appointment.AppointmentTime</td>
                             <td>
-                                @if(appointment.Priority == "HIGH") { <span class="badge bg-danger">HIGH</span> }
-                                else if(appointment.Priority == "MEDIUM") { <span class="badge bg-warning text-dark">MEDIUM</span> }
-                                else { <span class="badge bg-success">@appointment.Priority</span> }
+                                @if (appointment.Priority == "HIGH")
+                                {
+                                    <span class="badge text-bg-danger">HIGH</span>
+                                }
+                                else if (appointment.Priority == "MEDIUM")
+                                {
+                                    <span class="badge text-bg-warning">MEDIUM</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-success">@appointment.Priority</span>
+                                }
                             </td>
-                            <td>@appointment.Status</td>
+                            <td><span class="status-pill status-@appointment.Status.ToLower()">@appointment.Status</span></td>
+                            <td>
+                                <a asp-controller="Doctor" asp-action="AppointmentDetails" asp-route-id="@appointment.AppointmentId" class="btn btn-sm btn-outline-primary">Open</a>
+                            </td>
                         </tr>
                     }
-                </tbody>
-            </table>
-        </div>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No appointments found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>

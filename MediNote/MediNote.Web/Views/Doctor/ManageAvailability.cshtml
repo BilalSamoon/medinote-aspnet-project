@@ -1,88 +1,81 @@
 @model MediNote.Web.ViewModels.ManageAvailabilityViewModel
-
 @{
     ViewData["Title"] = "Manage Availability";
 }
 
-<div class="container mt-4">
-    <h1 class="mb-3">Manage Availability</h1>
-    <p class="text-muted">
-        This page allows the doctor to add or update available time slots.
-    </p>
+<div class="portal-header mb-4">
+    <div>
+        <span class="eyebrow">Doctor Workspace</span>
+        <h1>Manage availability</h1>
+        <p class="text-muted mb-0">Publish appointment windows so patients and admins can book against your schedule.</p>
+    </div>
+</div>
 
-    @if (Model != null && !string.IsNullOrEmpty(Model.StatusMessage))
-    {
-        <div class="alert alert-success">
-            @Model.StatusMessage
-        </div>
-    }
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="alert alert-success soft-alert">@Model.StatusMessage</div>
+}
 
-    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+<div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-success text-white">
-            Add Availability Slot
-        </div>
-        <div class="card-body">
-            <form asp-action="ManageAvailability" method="post">
-                <div class="mb-3">
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="app-card h-100">
+            <h3 class="mb-3">Add availability slot</h3>
+            <form asp-action="ManageAvailability" method="post" class="row g-3">
+                <div class="col-12">
                     <label asp-for="AvailableDate" class="form-label">Available Date</label>
                     <input asp-for="AvailableDate" class="form-control" type="date" />
-                    <span asp-validation-for="AvailableDate" class="text-danger"></span>
                 </div>
-
-                <div class="mb-3">
+                <div class="col-md-6">
                     <label asp-for="StartTime" class="form-label">Start Time</label>
                     <input asp-for="StartTime" class="form-control" type="time" />
-                    <span asp-validation-for="StartTime" class="text-danger"></span>
                 </div>
-
-                <div class="mb-3">
+                <div class="col-md-6">
                     <label asp-for="EndTime" class="form-label">End Time</label>
                     <input asp-for="EndTime" class="form-control" type="time" />
-                    <span asp-validation-for="EndTime" class="text-danger"></span>
                 </div>
-
-                <button type="submit" class="btn btn-success">Save Availability</button>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary btn-lg">Save Availability</button>
+                </div>
             </form>
         </div>
     </div>
-
-    <div class="card shadow-sm">
-        <div class="card-header bg-secondary text-white">
-            Existing Availability Slots
-        </div>
-        <div class="card-body">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Doctor</th>
-                        <th>Date</th>
-                        <th>Start Time</th>
-                        <th>End Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.ExistingSlots != null && Model.ExistingSlots.Count > 0)
-                    {
-                        foreach (var slot in Model.ExistingSlots)
+    <div class="col-lg-7">
+        <div class="app-card h-100">
+            <h3 class="mb-3">Published slots</h3>
+            <div class="table-responsive">
+                <table class="table appointment-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Start</th>
+                            <th>End</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ExistingSlots.Any())
+                        {
+                            foreach (var slot in Model.ExistingSlots)
+                            {
+                                <tr>
+                                    <td>@slot.DoctorName</td>
+                                    <td>@slot.AvailableDate.ToString("yyyy-MM-dd")</td>
+                                    <td>@slot.StartTime.ToString(@"hh\:mm")</td>
+                                    <td>@slot.EndTime.ToString(@"hh\:mm")</td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>@slot.DoctorName</td>
-                                <td>@slot.AvailableDate.ToString("yyyy-MM-dd")</td>
-                                <td>@slot.StartTime.ToString(@"hh\:mm")</td>
-                                <td>@slot.EndTime.ToString(@"hh\:mm")</td>
+                                <td colspan="4" class="text-center text-muted py-4">No availability slots have been created yet.</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="4">No availability slots found.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

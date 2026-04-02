@@ -1,88 +1,93 @@
 @page
 @model MediNote.Web.Pages.Account.RegisterModel
-
-<h2>Register</h2>
-
-<p>Create a new account.</p>
-
-@if (!ModelState.IsValid)
-{
-    <div class="alert alert-danger">
-        <div asp-validation-summary="All"></div>
-    </div>
+@{
+    ViewData["Title"] = "Create Account";
 }
 
-<form method="post">
-    <div class="form-group row mb-3">
-        <label asp-for="FirstName" class="col-sm-2 col-form-label"></label>
-        <div class="col-sm-5">
-            <input asp-for="FirstName" class="form-control" />
+<div class="auth-shell">
+    <div class="auth-card shadow-lg">
+        <div class="auth-header">
+            <div>
+                <span class="eyebrow">MediNote Access</span>
+                <h1>Create your account</h1>
+                <p class="text-muted mb-0">Patients get a personal portal. Doctors and admins can self-register and receive their own secure ID for login.</p>
+            </div>
         </div>
-    </div>
 
-    <div class="form-group row mb-3">
-        <label asp-for="LastName" class="col-sm-2 col-form-label"></label>
-        <div class="col-sm-5">
-            <input asp-for="LastName" class="form-control" />
-        </div>
-    </div>
+        @if (!ModelState.IsValid)
+        {
+            <div class="alert alert-danger soft-alert mt-3">
+                <div asp-validation-summary="All"></div>
+            </div>
+        }
 
-    <div class="form-group row mb-3">
-        <label asp-for="Username" class="col-sm-2 col-form-label"></label>
-        <div class="col-sm-5">
-            <input asp-for="Username" class="form-control" />
-        </div>
-    </div>
-    
-    <div class="form-group row mb-3">
-        <label asp-for="Password" class="col-sm-2 col-form-label"></label>
-        <div class="col-sm-5">
-            <input asp-for="Password" type="password" class="form-control" />
-        </div>
-    </div>
-    
-    <div class="form-group row mb-3">
-        <label asp-for="Role" class="col-sm-2 col-form-label"></label>
-        <div class="col-sm-5">
-            <select asp-for="Role" class="form-control" id="roleSelect">
-                <option value="Patient">Patient</option>
-                <option value="Doctor">Doctor</option>
-                <option value="Admin">Admin</option>
-            </select>
-        </div>
-    </div>
+        <form method="post" class="mt-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label asp-for="FirstName" class="form-label"></label>
+                    <input asp-for="FirstName" class="form-control form-control-lg" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="LastName" class="form-label"></label>
+                    <input asp-for="LastName" class="form-control form-control-lg" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Username" class="form-label"></label>
+                    <input asp-for="Username" class="form-control form-control-lg" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Email" class="form-label">Email</label>
+                    <input asp-for="Email" class="form-control form-control-lg" placeholder="name@email.com" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" type="password" class="form-control form-control-lg" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                    <input asp-for="ConfirmPassword" type="password" class="form-control form-control-lg" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Role" class="form-label"></label>
+                    <select asp-for="Role" class="form-select form-select-lg" id="roleSelect">
+                        <option value="Patient">Patient</option>
+                        <option value="Doctor">Doctor</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+            </div>
 
-    <div class="form-group row mb-3" id="securityIdGroup" style="display:none;">
-        <label class="col-sm-2 col-form-label">Doctor/Admin ID</label>
-        <div class="col-sm-5">
-            <input asp-for="SecurityId" class="form-control" placeholder="Required for Doctor or Admin" />
-        </div>
-    </div>
+            <div class="info-strip mt-3" id="doctorInfo" style="display:none;">
+                <strong>Doctor registration:</strong> MediNote will automatically issue your Doctor ID after signup. Save it and use it during login.
+            </div>
 
-    <div class="form-group row">
-        <div class="col-sm-5 offset-sm-2">
-            <button type="submit" class="btn btn-primary">Register</button>
-            <a asp-page="/Account/Login" class="btn btn-secondary">Cancel</a>
-        </div>
+            <div class="info-strip mt-3" id="adminInfo" style="display:none;">
+                <strong>Admin registration:</strong> Each administrator receives a unique Admin ID after signup. Use that Admin ID with your username and password to sign in.
+            </div>
+
+            <div class="d-flex gap-3 mt-4 flex-wrap">
+                <button type="submit" class="btn btn-primary btn-lg px-4">Create Account</button>
+                <a asp-page="/Account/Login" class="btn btn-outline-secondary btn-lg px-4">Go to Login</a>
+            </div>
+        </form>
     </div>
-</form>
+</div>
 
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var roleSelect = document.getElementById("roleSelect");
-            var securityGroup = document.getElementById("securityIdGroup");
+            const roleSelect = document.getElementById("roleSelect");
+            const doctorInfo = document.getElementById("doctorInfo");
+            const adminInfo = document.getElementById("adminInfo");
 
-            function toggleSecurityId() {
-                if (roleSelect.value === "Doctor" || roleSelect.value === "Admin") {
-                    securityGroup.style.display = "flex";
-                } else {
-                    securityGroup.style.display = "none";
-                }
+            function toggleRoleUI() {
+                const role = roleSelect.value;
+                doctorInfo.style.display = role === "Doctor" ? "block" : "none";
+                adminInfo.style.display = role === "Admin" ? "block" : "none";
             }
 
-            roleSelect.addEventListener("change", toggleSecurityId);
-            toggleSecurityId(); // init on load
+            roleSelect.addEventListener("change", toggleRoleUI);
+            toggleRoleUI();
         });
     </script>
 }

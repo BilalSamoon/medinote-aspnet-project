@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using MediNote.Web.Data;
@@ -6,8 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MediNote.Web.Services
 {
-    //By: Camila Esguerra
-    /// Repository responsible for user authentication and registration, as well as managing security codes for doctor and admin accounts.
+    /// <summary>
+    /// Repository responsible for authentication and registration.
+    /// </summary>
     public class UserRepository
     {
         private readonly MediNoteDbContext _context;
@@ -20,60 +22,151 @@ namespace MediNote.Web.Services
         public User? Authenticate(string username, string password, string securityId = "")
         {
             var user = _context.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
-            if (user != null)
+            if (user == null)
             {
-                if (user.Role == "Doctor" || user.Role == "Admin")
+                return null;
+            }
+
+            if ((user.Role == "Doctor" || user.Role == "Admin") && !string.IsNullOrEmpty(user.SecurityId))
+            {
+                if (!string.Equals(user.SecurityId, securityId?.Trim(), StringComparison.OrdinalIgnoreCase))
                 {
-                    if (user.SecurityId != securityId && !string.IsNullOrEmpty(user.SecurityId))
-                    {
-                        return null; // Invalid security ID
-                    }
+                    return null;
                 }
             }
+
             return user;
         }
 
-        public bool RegisterUser(string firstName, string lastName, string username, string password, string role, string securityId, out string errorMessage)
+        public bool RegisterUser(
+            string firstName,
+            string lastName,
+            string username,
+            string password,
+            string role,
+            string securityId,
+            string email,
+            out string errorMessage,
+            out string issuedSecurityId)
         {
             errorMessage = string.Empty;
-            if (_context.Users.Any(u => u.Username == username))
+            issuedSecurityId = string.Empty;
+
+            var normalizedRole = string.IsNullOrWhiteSpace(role) ? "Patient" : role.Trim();
+            var normalizedUsername = username?.Trim() ?? string.Empty;
+            var normalizedEmail = string.IsNullOrWhiteSpace(email)
+                ? $"{normalizedUsername}@medinote.local"
+                : email.Trim();
+
+            if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) || string.IsNullOrWhiteSpace(normalizedUsername) || string.IsNullOrWhiteSpace(password))
+            {
+                errorMessage = "First name, last name, username, and password are required.";
+                return false;
+            }
+
+            if (_context.Users.Any(u => u.Username == normalizedUsername))
             {
                 errorMessage = "Username already exists.";
                 return false;
             }
 
-            if (role == "Doctor" || role == "Admin")
+            var resolvedSecurityId = string.Empty;
+            if (string.Equals(normalizedRole, "Doctor", StringComparison.OrdinalIgnoreCase))
             {
-                var validCode = _context.SecurityCodes.FirstOrDefault(c => c.Code == securityId && c.Role == role && !c.IsClaimed);
-                if (validCode == null)
-                {
-                    errorMessage = "Invalid or already claimed Security ID for the selected role.";
-                    return false;
-                }
-
-                validCode.IsClaimed = true; // Mark as claimed
+                resolvedSecurityId = GenerateRoleId("DOC");
+                issuedSecurityId = resolvedSecurityId;
+            }
+            else if (string.Equals(normalizedRole, "Admin", StringComparison.OrdinalIgnoreCase))
+            {
+                resolvedSecurityId = GenerateRoleId("ADM");
+                issuedSecurityId = resolvedSecurityId;
             }
 
             var newUser = new User
             {
-                FirstName = firstName,
-                LastName = lastName,
-                Username = username,
+                FirstName = firstName.Trim(),
+                LastName = lastName.Trim(),
+                Username = normalizedUsername,
                 Password = password,
-                Role = role,
-                SecurityId = securityId ?? string.Empty
+                Role = normalizedRole,
+                SecurityId = resolvedSecurityId,
+                Email = normalizedEmail
             };
 
             _context.Users.Add(newUser);
+
+            if (!string.IsNullOrWhiteSpace(resolvedSecurityId))
+            {
+                var existingCode = _context.SecurityCodes.FirstOrDefault(c => c.Code == resolvedSecurityId);
+                if (existingCode == null)
+                {
+                    _context.SecurityCodes.Add(new SecurityCode
+                    {
+                        Code = resolvedSecurityId,
+                        Role = normalizedRole,
+                        IsClaimed = true
+                    });
+                }
+                else
+                {
+                    existingCode.Role = normalizedRole;
+                    existingCode.IsClaimed = true;
+                    _context.SecurityCodes.Update(existingCode);
+                }
+            }
+
             _context.SaveChanges();
             return true;
+        }
+
+        public bool RegisterUser(string firstName, string lastName, string username, string password, string role, string securityId, out string errorMessage)
+        {
+            return RegisterUser(firstName, lastName, username, password, role, securityId, string.Empty, out errorMessage, out _);
+        }
+
+        public List<User> GetDoctors()
+        {
+            return _context.Users
+                .Where(u => u.Role == "Doctor")
+                .OrderBy(u => u.FirstName)
+                .ThenBy(u => u.LastName)
+                .ToList();
+        }
+
+        public List<User> GetAdmins()
+        {
+            return _context.Users
+                .Where(u => u.Role == "Admin")
+                .OrderBy(u => u.FirstName)
+                .ThenBy(u => u.LastName)
+                .ToList();
+        }
+
+        public User? GetUserByDisplayName(string displayName)
+        {
+            return _context.Users.FirstOrDefault(u => (u.FirstName + " " + u.LastName).Trim() == displayName);
+        }
+
+        public User? GetUserByUsername(string username)
+        {
+            return _context.Users.FirstOrDefault(u => u.Username == username);
         }
 
         public void Migrate()
         {
             _context.Database.Migrate();
         }
+
+        private string GenerateRoleId(string prefix)
+        {
+            string candidate;
+            do
+            {
+                candidate = $"{prefix}-{Random.Shared.Next(100000, 999999)}";
+            }
+            while (_context.Users.Any(u => u.SecurityId == candidate) || _context.SecurityCodes.Any(c => c.Code == candidate));
+
+            return candidate;
+        }
     }
 }
-
-

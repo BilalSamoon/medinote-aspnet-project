@@ -6,8 +6,9 @@ using MediNote.Web.Models;
 
 namespace MediNote.Web.Services
 {
-    // By: Camila Esguerra
-    /// Repository responsible for managing appointment data, including booking, cancellation, status updates, and rescheduling.
+    /// <summary>
+    /// Repository responsible for managing appointment data.
+    /// </summary>
     public class AppointmentRepository
     {
         private readonly MediNoteDbContext _context;
@@ -17,18 +18,30 @@ namespace MediNote.Web.Services
             _context = context;
         }
 
-        public List<Appointment> GetAllAppointments() => _context.Appointments.ToList();
+        public List<Appointment> GetAllAppointments()
+            => _context.Appointments
+                .OrderByDescending(a => a.RequestedDate)
+                .ThenBy(a => a.RequestedTime)
+                .ToList();
 
         public List<Appointment> GetAppointmentsByPatient(string patientName)
-            => _context.Appointments.Where(a => a.PatientName == patientName).ToList();
+            => _context.Appointments
+                .Where(a => a.PatientName == patientName)
+                .OrderByDescending(a => a.RequestedDate)
+                .ThenBy(a => a.RequestedTime)
+                .ToList();
 
         public List<Appointment> GetPendingAppointments()
-            => _context.Appointments.Where(a => a.Status == "Pending").ToList();
+            => _context.Appointments
+                .Where(a => a.Status == "Pending")
+                .OrderBy(a => a.RequestedDate)
+                .ThenBy(a => a.RequestedTime)
+                .ToList();
 
-        public Appointment GetAppointmentById(int id)
+        public Appointment? GetAppointmentById(int id)
             => _context.Appointments.FirstOrDefault(a => a.AppointmentId == id);
 
-        public Appointment BookAppointment(string patientName, string doctorName, DateTime date, string time, string symptoms)
+        public Appointment BookAppointment(string patientName, string doctorName, DateTime date, string time, string symptoms, string? contactRecipient = null, string notificationChannel = "InApp")
         {
             var appointment = new Appointment
             {
@@ -37,7 +50,11 @@ namespace MediNote.Web.Services
                 RequestedDate = date,
                 RequestedTime = time,
                 Symptoms = symptoms,
-                Status = "Pending"
+                Status = "Pending",
+                ContactRecipient = contactRecipient ?? string.Empty,
+                NotificationChannel = string.IsNullOrWhiteSpace(notificationChannel) ? "InApp" : notificationChannel,
+                CreatedAtUtc = DateTime.UtcNow,
+                LastUpdatedAtUtc = DateTime.UtcNow
             };
 
             _context.Appointments.Add(appointment);
@@ -49,9 +66,10 @@ namespace MediNote.Web.Services
         public bool CancelAppointment(int id, string patientName)
         {
             var appointment = _context.Appointments.FirstOrDefault(a => a.AppointmentId == id && a.PatientName == patientName);
-            if (appointment != null && appointment.Status != "Cancelled")
+            if (appointment != null && (appointment.Status == "Pending" || appointment.Status == "Approved"))
             {
                 appointment.Status = "Cancelled";
+                appointment.LastUpdatedAtUtc = DateTime.UtcNow;
                 _context.SaveChanges();
                 return true;
             }
@@ -64,6 +82,7 @@ namespace MediNote.Web.Services
             if (appointment != null)
             {
                 appointment.Status = status;
+                appointment.LastUpdatedAtUtc = DateTime.UtcNow;
                 _context.SaveChanges();
                 return true;
             }
@@ -77,6 +96,7 @@ namespace MediNote.Web.Services
             {
                 appointment.RequestedDate = newDate;
                 appointment.RequestedTime = newTime;
+                appointment.LastUpdatedAtUtc = DateTime.UtcNow;
                 _context.SaveChanges();
                 return true;
             }

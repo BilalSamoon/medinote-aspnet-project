@@ -1,41 +1,75 @@
-﻿@{
+@{
     ViewData["Title"] = "Home";
 }
 
-<div class="text-center mt-5">
+<section class="hero-panel mb-4">
+    <div class="hero-copy">
+        <span class="eyebrow">Modern Patient Scheduling</span>
+        <h1>MediNote streamlines appointments, follow-ups, notes, prescriptions, and clinic operations.</h1>
+        <p>Patients can book only inside a doctor's published schedule. Doctors manage availability and cancel incorrect appointments. Admins can self-register, support patients by phone, and control the live appointment queue.</p>
+        <div class="d-flex gap-3 flex-wrap mt-4">
+            @if (User.Identity?.IsAuthenticated ?? false)
+            {
+                <a asp-page="/Patient/Dashboard" class="btn btn-light btn-lg">Open Patient Portal</a>
+            }
+            else
+            {
+                <a asp-page="/Account/Login" class="btn btn-light btn-lg">Sign In</a>
+                <a asp-page="/Account/Register" class="btn btn-outline-light btn-lg">Register</a>
+            }
+        </div>
+    </div>
+    <div class="hero-stats">
+        <div class="hero-stat-card">
+            <span>Patients</span>
+            <strong>Personal portal</strong>
+            <p>Appointments, notes, prescriptions, confirmations, reminders.</p>
+        </div>
+        <div class="hero-stat-card">
+            <span>Doctors</span>
+            <strong>Self-registration</strong>
+            <p>Each doctor receives a Doctor ID for secure login access.</p>
+        </div>
+        <div class="hero-stat-card">
+            <span>Admins</span>
+            <strong>Self-registration</strong>
+            <p>Each administrator receives an Admin ID and can manage appointments end to end.</p>
+        </div>
+    </div>
+</section>
 
-    <h1 class="display-4">Welcome to MediNote</h1>
-
-    <p class="lead">
-        A healthcare appointment management system designed to streamline scheduling,
-        improve efficiency, and prioritize patient needs.
-    </p>
-
-    <hr class="my-4" />
-
-    @if (!User.Identity.IsAuthenticated)
-    {
-        <p>Please login or register to continue.</p>
-
-        <a class="btn btn-primary me-2" asp-page="/Account/Login">Login</a>
-        <a class="btn btn-outline-secondary" asp-page="/Account/Register">Register</a>
-    }
-    else
-    {
-        <p class="mb-3">Welcome back, @User.Identity.Name!</p>
-
-        @if (User.IsInRole("Patient"))
-        {
-            <a class="btn btn-primary" asp-page="/Patient/Dashboard">Go to Dashboard</a>
-        }
-        else if (User.IsInRole("Doctor"))
-        {
-            <a class="btn btn-primary" asp-controller="Doctor" asp-action="Schedule">View Schedule</a>
-        }
-        else if (User.IsInRole("Admin"))
-        {
-            <a class="btn btn-primary" asp-controller="Admin" asp-action="Dashboard">Admin Panel</a>
-        }
-    }
-
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="app-card h-100">
+            <div class="section-icon">🩺</div>
+            <h3>Doctor workflow</h3>
+            <p>Review schedule, add availability, approve requests, cancel incorrect appointments, mark visits complete, and add clinical notes.</p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-outline-primary">Schedule</a>
+                <a asp-controller="Doctor" asp-action="ManageAvailability" class="btn btn-outline-primary">Availability</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-card h-100">
+            <div class="section-icon">👤</div>
+            <h3>Patient portal</h3>
+            <p>Patients can request appointments only in allowed doctor time windows, track statuses, and review doctor notes and prescriptions after visits.</p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a asp-page="/Patient/Dashboard" class="btn btn-outline-success">Dashboard</a>
+                <a asp-page="/Patient/BookAppointment" class="btn btn-outline-success">Book Visit</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-card h-100">
+            <div class="section-icon">🗂️</div>
+            <h3>Admin operations</h3>
+            <p>Click into total and pending appointments, inspect doctor availability, create bookings on behalf of patients, and cancel incorrect appointments.</p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a asp-controller="Admin" asp-action="Dashboard" class="btn btn-outline-dark">Dashboard</a>
+                <a asp-controller="Admin" asp-action="ManageAppointments" class="btn btn-outline-dark">Manage Appointments</a>
+            </div>
+        </div>
+    </div>
 </div>

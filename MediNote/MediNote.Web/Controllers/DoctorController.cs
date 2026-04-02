@@ -1,54 +1,34 @@
-using System.Collections.Generic;
-using MediNote.Web.Models;
+using MediNote.Web.Contracts;
 using MediNote.Web.Services;
 using MediNote.Web.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MediNote.Web.Controllers
 {
     /// <summary>
-    /// Author: Daniel Guillaumont
-    /// Controller responsible for doctor-related pages such as schedule,
-    /// availability management, pending appointments, and rescheduling.
+    /// Controller responsible for doctor-related pages.
     /// </summary>
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Doctor,Admin")]
+    [Authorize(Roles = "Doctor,Admin")]
     public class DoctorController : Controller
     {
-        /// <summary>
-        /// Stores the schedule service used by the controller.
-        /// </summary>
         private readonly ScheduleService _scheduleService;
-
-        /// <summary>
-        /// Stores the availability service used by the controller.
-        /// </summary>
         private readonly AvailabilityService _availabilityService;
-
-        /// <summary>
-        /// Stores the appointment service used by the controller.
-        /// </summary>
         private readonly DoctorAppointmentService _doctorAppointmentService;
+        private readonly DoctorPortalService _doctorPortalService;
 
-        /// <summary>
-        /// Initializes a new instance of the DoctorController class.
-        /// </summary>
-        /// <param name="scheduleService">The injected schedule service.</param>
-        /// <param name="availabilityService">The injected availability service.</param>
-        /// <param name="doctorAppointmentService">The injected doctor appointment service.</param>
         public DoctorController(
             ScheduleService scheduleService,
             AvailabilityService availabilityService,
-            DoctorAppointmentService doctorAppointmentService)
+            DoctorAppointmentService doctorAppointmentService,
+            DoctorPortalService doctorPortalService)
         {
             _scheduleService = scheduleService;
             _availabilityService = availabilityService;
             _doctorAppointmentService = doctorAppointmentService;
+            _doctorPortalService = doctorPortalService;
         }
 
-        /// <summary>
-        /// Displays the doctor's schedule page.
-        /// </summary>
-        /// <returns>The Schedule view.</returns>
         public IActionResult Schedule()
         {
             var doctorName = User.IsInRole("Admin") ? null : User.Identity?.Name;
@@ -56,42 +36,17 @@ namespace MediNote.Web.Controllers
             return View(model);
         }
 
-        /// <summary>
-        /// Displays the page for managing doctor availability.
-        /// </summary>
-        /// <returns>The ManageAvailability view.</returns>
         [HttpGet]
         public IActionResult ManageAvailability()
         {
-            var model = _availabilityService.GetManageAvailabilityViewModel();
-
-            if (model == null)
-            {
-                model = new ManageAvailabilityViewModel();
-            }
-
-            if (model.ExistingSlots == null)
-            {
-                model.ExistingSlots = new List<Availability>();
-            }
-
+            var model = _availabilityService.GetManageAvailabilityViewModel(User.Identity?.Name, User.IsInRole("Admin"));
             return View(model);
         }
 
-        /// <summary>
-        /// Handles submitted availability form data.
-        /// </summary>
-        /// <param name="model">The submitted availability view model.</param>
-        /// <returns>The ManageAvailability view with validation or success message.</returns>
         [HttpPost]
         public IActionResult ManageAvailability(ManageAvailabilityViewModel model)
         {
-            if (model == null)
-            {
-                model = new ManageAvailabilityViewModel();
-            }
-
-            model.ExistingSlots = _availabilityService.GetSampleAvailabilitySlots();
+            model.ExistingSlots = _availabilityService.GetSampleAvailabilitySlots(User.Identity?.Name, User.IsInRole("Admin"));
 
             if (!ModelState.IsValid)
             {
@@ -104,43 +59,30 @@ namespace MediNote.Web.Controllers
                 return View(model);
             }
 
+            var doctorName = User.Identity?.Name ?? "Unknown Doctor";
             if (_availabilityService.HasOverlappingSlot(
                 model.AvailableDate!.Value,
                 model.StartTime!.Value,
-                model.EndTime!.Value))
+                model.EndTime!.Value,
+                User.IsInRole("Admin") ? null : doctorName))
             {
-                ModelState.AddModelError(string.Empty, "The selected availability slot overlaps with an existing slot.");
+                ModelState.AddModelError(string.Empty, "The selected availability slot overlaps with an existing slot for this doctor.");
                 return View(model);
             }
 
-            _availabilityService.AddAvailability(new Availability
+            _availabilityService.AddAvailability(new Models.Availability
             {
-                DoctorName = User.Identity?.Name ?? "Unknown Doctor",
+                DoctorName = doctorName,
                 AvailableDate = model.AvailableDate.Value,
                 StartTime = model.StartTime.Value,
                 EndTime = model.EndTime.Value
             });
 
-            var refreshedModel = _availabilityService.GetManageAvailabilityViewModel();
-
-            if (refreshedModel == null)
-            {
-                refreshedModel = new ManageAvailabilityViewModel();
-            }
-
-            if (refreshedModel.ExistingSlots == null)
-            {
-                refreshedModel.ExistingSlots = new List<Availability>();
-            }
-
+            var refreshedModel = _availabilityService.GetManageAvailabilityViewModel(User.Identity?.Name, User.IsInRole("Admin"));
             refreshedModel.StatusMessage = "Availability slot saved successfully.";
             return View(refreshedModel);
         }
 
-        /// <summary>
-        /// Displays the page showing pending appointments that need doctor action.
-        /// </summary>
-        /// <returns>The PendingAppointments view.</returns>
         [HttpGet]
         public IActionResult PendingAppointments()
         {
@@ -148,39 +90,20 @@ namespace MediNote.Web.Controllers
             return View(model);
         }
 
-        /// <summary>
-        /// Handles approval of a pending appointment.
-        /// </summary>
-        /// <param name="id">The appointment ID.</param>
-        /// <returns>The PendingAppointments view with a status message.</returns>
         [HttpPost]
         public IActionResult ApprovePendingAppointment(int id)
         {
-            string message = _doctorAppointmentService.ApproveAppointment(id);
-            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel(User.Identity?.Name, User.IsInRole("Admin"));
-            model.StatusMessage = message;
-            return View("PendingAppointments", model);
+            TempData["DoctorStatusMessage"] = _doctorAppointmentService.ApproveAppointment(id);
+            return RedirectToAction(nameof(PendingAppointments));
         }
 
-        /// <summary>
-        /// Handles rejection of a pending appointment.
-        /// </summary>
-        /// <param name="id">The appointment ID.</param>
-        /// <returns>The PendingAppointments view with a status message.</returns>
         [HttpPost]
-        public IActionResult RejectPendingAppointment(int id)
+        public IActionResult CancelPendingAppointment(int id)
         {
-            string message = _doctorAppointmentService.RejectAppointment(id);
-            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel(User.Identity?.Name, User.IsInRole("Admin"));
-            model.StatusMessage = message;
-            return View("PendingAppointments", model);
+            TempData["DoctorStatusMessage"] = _doctorAppointmentService.CancelAppointment(id);
+            return RedirectToAction(nameof(PendingAppointments));
         }
 
-        /// <summary>
-        /// Displays the reschedule page for a selected appointment.
-        /// </summary>
-        /// <param name="id">The appointment ID.</param>
-        /// <returns>The Reschedule view.</returns>
         [HttpGet]
         public IActionResult Reschedule(int id)
         {
@@ -188,11 +111,6 @@ namespace MediNote.Web.Controllers
             return View(model);
         }
 
-        /// <summary>
-        /// Handles submitted reschedule form data.
-        /// </summary>
-        /// <param name="model">The submitted reschedule appointment view model.</param>
-        /// <returns>The Reschedule view with validation or success message.</returns>
         [HttpPost]
         public IActionResult Reschedule(RescheduleAppointmentViewModel model)
         {
@@ -213,9 +131,11 @@ namespace MediNote.Web.Controllers
                 return View(model);
             }
 
-            if (_doctorAppointmentService.HasRescheduleConflict(model.NewDate!.Value, model.NewTime!.Value))
+            var detail = _doctorPortalService.GetAppointmentDetail(model.AppointmentId, User.Identity?.Name, User.IsInRole("Admin"));
+            var doctorName = detail?.Appointment.DoctorName ?? User.Identity?.Name ?? string.Empty;
+            if (!_doctorAppointmentService.TryValidateRescheduleSlot(doctorName, model.NewDate!.Value, model.NewTime!.Value, model.AppointmentId, out var errorMessage))
             {
-                ModelState.AddModelError(string.Empty, "The selected new time slot is already taken.");
+                ModelState.AddModelError(string.Empty, errorMessage);
                 return View(model);
             }
 
@@ -223,6 +143,82 @@ namespace MediNote.Web.Controllers
             var refreshedModel = _doctorAppointmentService.GetRescheduleViewModel(model.AppointmentId);
             refreshedModel.StatusMessage = statusMessage;
             return View(refreshedModel);
+        }
+
+        [HttpGet]
+        public IActionResult AppointmentDetails(int id)
+        {
+            return View(BuildAppointmentDetailsViewModel(id));
+        }
+
+        [HttpPost]
+        public IActionResult ApproveAppointment(int appointmentId)
+        {
+            var message = _doctorAppointmentService.ApproveAppointment(appointmentId);
+            return View("AppointmentDetails", BuildAppointmentDetailsViewModel(appointmentId, message));
+        }
+
+        [HttpPost]
+        public IActionResult AddDoctorNote(DoctorAppointmentDetailsViewModel model)
+        {
+            _doctorPortalService.AddDoctorNote(model.Detail.Appointment.AppointmentId, User.Identity?.Name ?? string.Empty, model.NewNote, model.FollowUpInstructions, User.IsInRole("Admin"), out var message);
+            return View("AppointmentDetails", BuildAppointmentDetailsViewModel(model.Detail.Appointment.AppointmentId, message));
+        }
+
+        [HttpPost]
+        public IActionResult AddPrescription(DoctorAppointmentDetailsViewModel model)
+        {
+            _doctorPortalService.AddPrescription(
+                model.Detail.Appointment.AppointmentId,
+                User.Identity?.Name ?? string.Empty,
+                new PrescriptionCreateRequest
+                {
+                    MedicationName = model.MedicationName,
+                    Dosage = model.Dosage,
+                    Frequency = model.Frequency,
+                    Duration = model.Duration,
+                    Instructions = model.PrescriptionInstructions
+                },
+                User.IsInRole("Admin"),
+                out var message);
+
+            return View("AppointmentDetails", BuildAppointmentDetailsViewModel(model.Detail.Appointment.AppointmentId, message));
+        }
+
+        [HttpPost]
+        public IActionResult MarkCompleted(int appointmentId)
+        {
+            _doctorPortalService.MarkAppointmentCompleted(appointmentId, User.Identity?.Name ?? string.Empty, User.IsInRole("Admin"), out var message);
+            return View("AppointmentDetails", BuildAppointmentDetailsViewModel(appointmentId, message));
+        }
+
+        [HttpPost]
+        public IActionResult CancelAppointment(int appointmentId)
+        {
+            _doctorPortalService.CancelAppointment(appointmentId, User.Identity?.Name ?? string.Empty, User.IsInRole("Admin"), out var message);
+            return View("AppointmentDetails", BuildAppointmentDetailsViewModel(appointmentId, message));
+        }
+
+        [HttpPost]
+        public IActionResult QueueReminder(DoctorAppointmentDetailsViewModel model)
+        {
+            _doctorPortalService.QueueReminder(model.Detail.Appointment.AppointmentId, User.Identity?.Name ?? string.Empty, model.ReminderChannel, model.ReminderRecipient, User.IsInRole("Admin"), out var message);
+            return View("AppointmentDetails", BuildAppointmentDetailsViewModel(model.Detail.Appointment.AppointmentId, message));
+        }
+
+        private DoctorAppointmentDetailsViewModel BuildAppointmentDetailsViewModel(int appointmentId, string? statusMessage = null)
+        {
+            var detail = _doctorPortalService.GetAppointmentDetail(appointmentId, User.Identity?.Name, User.IsInRole("Admin"));
+            if (detail == null)
+            {
+                detail = new AppointmentDetailDto();
+            }
+
+            return new DoctorAppointmentDetailsViewModel
+            {
+                Detail = detail,
+                StatusMessage = statusMessage ?? string.Empty
+            };
         }
     }
 }

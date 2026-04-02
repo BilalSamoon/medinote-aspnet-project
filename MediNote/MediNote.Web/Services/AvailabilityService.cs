@@ -8,7 +8,6 @@ using MediNote.Web.ViewModels;
 namespace MediNote.Web.Services
 {
     /// <summary>
-    /// Author: Daniel Guillaumont
     /// Provides business logic for doctor availability.
     /// </summary>
     public class AvailabilityService
@@ -20,29 +19,27 @@ namespace MediNote.Web.Services
             _context = context;
         }
 
-        public AvailabilityService()
-        {
-        }
-
-        /// <summary>
-        /// Returns the manage availability page model with sample data.
-        /// </summary>
-        /// <returns>A populated manage availability view model.</returns>
-        public ManageAvailabilityViewModel GetManageAvailabilityViewModel()
+        public ManageAvailabilityViewModel GetManageAvailabilityViewModel(string? doctorName = null, bool isAdmin = false)
         {
             return new ManageAvailabilityViewModel
             {
-                ExistingSlots = GetSampleAvailabilitySlots()
+                ExistingSlots = GetSampleAvailabilitySlots(doctorName, isAdmin)
             };
         }
 
-        /// <summary>
-        /// Returns availability slots for display.
-        /// </summary>
-        /// <returns>A list of availability slots.</returns>
-        public List<Availability> GetSampleAvailabilitySlots()
+        public List<Availability> GetSampleAvailabilitySlots(string? doctorName = null, bool isAdmin = true)
         {
-            return _context.Availabilities.ToList();
+            var query = _context.Availabilities.AsQueryable();
+
+            if (!isAdmin && !string.IsNullOrWhiteSpace(doctorName))
+            {
+                query = query.Where(a => a.DoctorName == doctorName);
+            }
+
+            return query
+                .OrderBy(a => a.AvailableDate)
+                .ThenBy(a => a.StartTime)
+                .ToList();
         }
 
         public void AddAvailability(Availability availability)
@@ -51,41 +48,29 @@ namespace MediNote.Web.Services
             _context.SaveChanges();
         }
 
-        /// <summary>
-        /// Checks whether the end time is after the start time.
-        /// </summary>
-        /// <param name="startTime">The selected start time.</param>
-        /// <param name="endTime">The selected end time.</param>
-        /// <returns>True if end time is after start time; otherwise false.</returns>
         public bool IsEndTimeAfterStartTime(TimeSpan startTime, TimeSpan endTime)
         {
             return endTime > startTime;
         }
 
-        /// <summary>
-        /// Checks whether the proposed slot overlaps with an existing sample slot on the same date.
-        /// </summary>
-        /// <param name="availableDate">The selected date.</param>
-        /// <param name="startTime">The selected start time.</param>
-        /// <param name="endTime">The selected end time.</param>
-        /// <returns>True if overlap exists; otherwise false.</returns>
         public bool HasOverlappingSlot(DateTime availableDate, TimeSpan startTime, TimeSpan endTime)
         {
-            var existingSlots = GetSampleAvailabilitySlots();
+            return HasOverlappingSlot(availableDate, startTime, endTime, null);
+        }
 
-            foreach (var slot in existingSlots)
+        public bool HasOverlappingSlot(DateTime availableDate, TimeSpan startTime, TimeSpan endTime, string? doctorName)
+        {
+            var existingSlots = _context.Availabilities.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(doctorName))
             {
-                if (slot.AvailableDate.Date == availableDate.Date)
-                {
-                    bool overlaps = startTime < slot.EndTime && endTime > slot.StartTime;
-                    if (overlaps)
-                    {
-                        return true;
-                    }
-                }
+                existingSlots = existingSlots.Where(slot => slot.DoctorName == doctorName);
             }
 
-            return false;
+            return existingSlots.Any(slot =>
+                slot.AvailableDate.Date == availableDate.Date &&
+                startTime < slot.EndTime &&
+                endTime > slot.StartTime);
         }
     }
 }

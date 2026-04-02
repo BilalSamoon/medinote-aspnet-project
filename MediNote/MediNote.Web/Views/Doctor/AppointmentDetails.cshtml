@@ -1,0 +1,192 @@
+@model MediNote.Web.ViewModels.DoctorAppointmentDetailsViewModel
+@{
+    ViewData["Title"] = "Appointment Details";
+    var canCancel = Model.Detail.Appointment.Status == "Pending" || Model.Detail.Appointment.Status == "Approved";
+    var canComplete = Model.Detail.Appointment.Status == "Approved";
+    var canApprove = Model.Detail.Appointment.Status == "Pending";
+}
+
+<div class="portal-header mb-4">
+    <div>
+        <span class="eyebrow">Doctor Record</span>
+        <h1>Appointment #@Model.Detail.Appointment.AppointmentId</h1>
+        <p class="text-muted mb-0">Update the clinical record, add prescriptions, queue reminders, and manage status.</p>
+    </div>
+    <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-outline-secondary btn-lg">Back to Schedule</a>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="alert alert-success soft-alert">@Model.StatusMessage</div>
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="app-card h-100">
+            <h3>Visit summary</h3>
+            <p><strong>Patient:</strong> @Model.Detail.Appointment.PatientName</p>
+            <p><strong>Doctor:</strong> @Model.Detail.Appointment.DoctorName</p>
+            <p><strong>Date:</strong> @Model.Detail.Appointment.RequestedDate.ToString("yyyy-MM-dd")</p>
+            <p><strong>Time:</strong> @Model.Detail.Appointment.RequestedTime</p>
+            <p><strong>Status:</strong> <span class="status-pill status-@Model.Detail.Appointment.Status.ToLower()">@Model.Detail.Appointment.Status</span></p>
+            <p><strong>Symptoms:</strong> @Model.Detail.Appointment.Symptoms</p>
+            <div class="d-flex gap-2 flex-wrap mt-3">
+                @if (canApprove)
+                {
+                    <form asp-action="ApproveAppointment" method="post" class="d-inline">
+                        <input type="hidden" name="appointmentId" value="@Model.Detail.Appointment.AppointmentId" />
+                        <button type="submit" class="btn btn-success">Approve</button>
+                    </form>
+                }
+                @if (canCancel)
+                {
+                    <form asp-action="CancelAppointment" method="post" class="d-inline">
+                        <input type="hidden" name="appointmentId" value="@Model.Detail.Appointment.AppointmentId" />
+                        <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Cancel this appointment?');">Cancel</button>
+                    </form>
+                }
+                @if (canComplete)
+                {
+                    <form asp-action="MarkCompleted" method="post" class="d-inline">
+                        <input type="hidden" name="appointmentId" value="@Model.Detail.Appointment.AppointmentId" />
+                        <button type="submit" class="btn btn-primary">Mark Completed</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="app-card h-100">
+            <h3>Queue reminder</h3>
+            <form asp-action="QueueReminder" method="post" class="row g-3">
+                <input asp-for="Detail.Appointment.AppointmentId" type="hidden" />
+                <div class="col-md-6">
+                    <label asp-for="ReminderChannel" class="form-label">Channel</label>
+                    <select asp-for="ReminderChannel" class="form-select">
+                        <option>Email</option>
+                        <option>SMS</option>
+                        <option>InApp</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="ReminderRecipient" class="form-label">Recipient</label>
+                    <input asp-for="ReminderRecipient" class="form-control" placeholder="Optional email or phone" />
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-outline-primary">Queue Reminder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="app-card h-100">
+            <h3>Add doctor note</h3>
+            <form asp-action="AddDoctorNote" method="post" class="row g-3">
+                <input asp-for="Detail.Appointment.AppointmentId" type="hidden" />
+                <div class="col-12">
+                    <label asp-for="NewNote" class="form-label">Clinical note</label>
+                    <textarea asp-for="NewNote" class="form-control" rows="6"></textarea>
+                </div>
+                <div class="col-12">
+                    <label asp-for="FollowUpInstructions" class="form-label">Follow-up instructions</label>
+                    <textarea asp-for="FollowUpInstructions" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Save Note</button>
+                </div>
+            </form>
+
+            <hr class="my-4" />
+            <h4>Saved notes</h4>
+            @if (Model.Detail.DoctorNotes.Any())
+            {
+                foreach (var note in Model.Detail.DoctorNotes)
+                {
+                    <div class="stack-card mb-3">
+                        <div class="small text-muted">@note.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                        <div class="mt-2">@note.Note</div>
+                        @if (!string.IsNullOrWhiteSpace(note.FollowUpInstructions))
+                        {
+                            <div class="mt-2"><strong>Follow-up:</strong> @note.FollowUpInstructions</div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">No notes yet.</div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-card h-100">
+            <h3>Add prescription</h3>
+            <form asp-action="AddPrescription" method="post" class="row g-3">
+                <input asp-for="Detail.Appointment.AppointmentId" type="hidden" />
+                <div class="col-12">
+                    <label asp-for="MedicationName" class="form-label">Medication</label>
+                    <input asp-for="MedicationName" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Dosage" class="form-label">Dosage</label>
+                    <input asp-for="Dosage" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Frequency" class="form-label">Frequency</label>
+                    <input asp-for="Frequency" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="Duration" class="form-label">Duration</label>
+                    <input asp-for="Duration" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="PrescriptionInstructions" class="form-label">Instructions</label>
+                    <textarea asp-for="PrescriptionInstructions" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Save Prescription</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-card h-100">
+            <h3>Prescriptions & notifications</h3>
+            <h4 class="mt-3">Prescriptions</h4>
+            @if (Model.Detail.Prescriptions.Any())
+            {
+                foreach (var p in Model.Detail.Prescriptions)
+                {
+                    <div class="stack-card mb-3">
+                        <div><strong>@p.MedicationName</strong></div>
+                        <div class="small text-muted">@p.Dosage · @p.Frequency · @p.Duration</div>
+                        <div class="mt-2">@p.Instructions</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state mb-3">No prescriptions yet.</div>
+            }
+
+            <h4 class="mt-4">Notifications</h4>
+            @if (Model.Detail.Notifications.Any())
+            {
+                foreach (var item in Model.Detail.Notifications)
+                {
+                    <div class="stack-card mb-3">
+                        <div class="small text-muted">@item.Type · @item.Channel</div>
+                        <div class="mt-2">@item.Message</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">No notifications logged yet.</div>
+            }
+        </div>
+    </div>
+</div>

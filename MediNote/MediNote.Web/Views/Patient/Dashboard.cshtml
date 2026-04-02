@@ -1,67 +1,142 @@
 @page
 @model MediNote.Web.Pages.Patient.DashboardModel
+@{
+    ViewData["Title"] = "Patient Portal";
+}
 
-<h2>Patient Dashboard</h2>
+<div class="portal-header mb-4">
+    <div>
+        <span class="eyebrow">Patient Portal</span>
+        <h1>Hello, @Model.Dashboard.PatientName</h1>
+        <p class="text-muted mb-0">Track requests, see status updates, review notes, and plan your next visit.</p>
+    </div>
+    <a asp-page="/Patient/BookAppointment" class="btn btn-primary btn-lg">Book New Appointment</a>
+</div>
 
-<p>Welcome to your Patient Dashboard. Here are your current appointments:</p>
-
-<a asp-page="/Patient/BookAppointment" class="btn btn-primary mb-3">Book New Appointment</a>
-
-@if (Model.Appointments.Any())
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Appointment ID</th>
-                <th>Doctor</th>
-                <th>Requested Date</th>
-                <th>Time</th>
-                <th>Symptoms</th>
-                <th>Status</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var appt in Model.Appointments)
+    <div class="alert alert-success soft-alert">@Model.StatusMessage</div>
+}
+
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="metric-card">
+            <span>Total appointments</span>
+            <strong>@Model.Dashboard.TotalAppointments</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <span>Pending</span>
+            <strong>@Model.Dashboard.PendingAppointments</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <span>Approved / Completed</span>
+            <strong>@Model.Dashboard.ApprovedAppointments</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="metric-card">
+            <span>Cancelled</span>
+            <strong>@Model.Dashboard.CancelledAppointments</strong>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="app-card h-100">
+            <div class="section-icon">📅</div>
+            <h3>Next appointment</h3>
+            @if (Model.Dashboard.NextAppointment != null)
             {
-                <tr>
-                    <td>@appt.AppointmentId</td>
-                    <td>@appt.DoctorName</td>
-                    <td>@appt.RequestedDate.ToShortDateString()</td>
-                    <td>@appt.RequestedTime</td>
-                    <td>@appt.Symptoms</td>
-                    <td>
-                        @if (appt.Status == "Pending")
-                        {
-                            <span class="badge bg-warning text-dark">@appt.Status</span>
-                        }
-                        else if (appt.Status == "Approved")
-                        {
-                            <span class="badge bg-success">@appt.Status</span>
-                        }
-                        else if (appt.Status == "Rejected" || appt.Status == "Cancelled")
-                        {
-                            <span class="badge bg-danger">@appt.Status</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-secondary">@appt.Status</span>
-                        }
-                    </td>
-                    <td>
-                        @if (appt.Status == "Pending" || appt.Status == "Approved")
-                        {
-                            <form method="post" asp-page-handler="Cancel" asp-route-id="@appt.AppointmentId" style="display:inline;">
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to cancel this appointment?');">Cancel</button>
-                            </form>
-                        }
-                    </td>
-                </tr>
+                <p class="mb-1"><strong>Doctor:</strong> @Model.Dashboard.NextAppointment.DoctorName</p>
+                <p class="mb-1"><strong>Date:</strong> @Model.Dashboard.NextAppointment.RequestedDate.ToString("yyyy-MM-dd")</p>
+                <p class="mb-1"><strong>Time:</strong> @Model.Dashboard.NextAppointment.RequestedTime</p>
+                <p class="mb-0"><strong>Status:</strong> <span class="status-pill status-@Model.Dashboard.NextAppointment.Status.ToLower()">@Model.Dashboard.NextAppointment.Status</span></p>
             }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>You have no appointments booked yet.</p>
-}
+            else
+            {
+                <p class="text-muted mb-0">No upcoming appointment yet.</p>
+            }
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="app-card h-100">
+            <div class="section-icon">💡</div>
+            <h3>What you can do here</h3>
+            <ul class="portal-list mb-0">
+                <li>Check whether your appointment is pending, approved, cancelled, or completed.</li>
+                <li>Open each visit to read doctor notes, follow-up instructions, and prescriptions.</li>
+                <li>Book the next appointment and receive confirmation or reminder logs.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+        <div>
+            <span class="eyebrow">Appointments</span>
+            <h3 class="mb-0">Your appointment timeline</h3>
+        </div>
+    </div>
+
+    @if (Model.Dashboard.Appointments.Any())
+    {
+        <div class="table-responsive">
+            <table class="table appointment-table align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Clinical Docs</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var appt in Model.Dashboard.Appointments)
+                    {
+                        <tr>
+                            <td>#@appt.AppointmentId</td>
+                            <td>@appt.DoctorName</td>
+                            <td>@appt.RequestedDate.ToString("yyyy-MM-dd")</td>
+                            <td>@appt.RequestedTime</td>
+                            <td><span class="status-pill status-@appt.Status.ToLower()">@appt.Status</span></td>
+                            <td>
+                                @if (appt.HasDoctorNotes || appt.HasPrescriptions)
+                                {
+                                    <span class="badge text-bg-light border">Available</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Waiting</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a asp-page="/Patient/AppointmentDetails" asp-route-id="@appt.AppointmentId" class="btn btn-sm btn-outline-primary">View</a>
+                                    @if (appt.CanCancel)
+                                    {
+                                        <form method="post" asp-page-handler="Cancel" asp-route-id="@appt.AppointmentId" class="d-inline">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this appointment?');">Cancel</button>
+                                        </form>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">You have no appointments yet. Book your first visit to get started.</div>
+    }
+</div>

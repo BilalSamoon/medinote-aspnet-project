@@ -1,9 +1,7 @@
 namespace MediNote.Web.Models
 {
-
     /// <summary>
-    /// Author: Camila Esguerra
-    /// User model for authentication and role management.
+    /// Application user used for login and portal access.
     /// </summary>
     public class User
     {
@@ -13,7 +11,9 @@ namespace MediNote.Web.Models
         public string Username { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
-        public string SecurityId { get; set; } = string.Empty; // This property exists in the model
+        public string SecurityId { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+
+        public string DisplayName => $"{FirstName} {LastName}".Trim();
     }
 }
-

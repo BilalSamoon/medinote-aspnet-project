@@ -1,12 +1,11 @@
 using System;
 using System.Linq;
-using MediNote.Web.ViewModels;
 using MediNote.Web.Data;
+using MediNote.Web.ViewModels;
 
 namespace MediNote.Web.Services
 {
     /// <summary>
-    /// Author: Daniel Guillaumont
     /// Provides schedule-related data for doctor pages.
     /// </summary>
     public class ScheduleService
@@ -20,11 +19,7 @@ namespace MediNote.Web.Services
             _priorityCalculationService = priorityCalculationService;
         }
 
-        /// <summary>
-        /// Returns schedule data dynamically from the database.
-        /// </summary>
-        /// <returns>A populated doctor schedule view model.</returns>
-        public DoctorScheduleViewModel GetDoctorSchedule(string doctorName = null)
+        public DoctorScheduleViewModel GetDoctorSchedule(string? doctorName = null)
         {
             var query = _context.Appointments.AsQueryable();
             if (!string.IsNullOrEmpty(doctorName))
@@ -32,7 +27,10 @@ namespace MediNote.Web.Services
                 query = query.Where(a => a.DoctorName == doctorName);
             }
 
-            var appointments = query.ToList();
+            var appointments = query
+                .OrderBy(a => a.RequestedDate)
+                .ThenBy(a => a.RequestedTime)
+                .ToList();
 
             return new DoctorScheduleViewModel
             {
@@ -40,12 +38,14 @@ namespace MediNote.Web.Services
                 ScheduleDate = DateTime.Now.Date,
                 Appointments = appointments.Select(a => new DoctorScheduleItemViewModel
                 {
+                    AppointmentId = a.AppointmentId,
                     PatientName = a.PatientName,
                     DoctorName = a.DoctorName,
                     AppointmentDate = a.RequestedDate,
                     AppointmentTime = a.RequestedTime,
                     Priority = _priorityCalculationService.GetPriority(a.Symptoms),
-                    Status = a.Status
+                    Status = a.Status,
+                    Symptoms = a.Symptoms
                 }).ToList()
             };
         }

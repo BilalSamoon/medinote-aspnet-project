@@ -1,68 +1,31 @@
-﻿@model IEnumerable<MediNote.Web.Models.Appointment>
-
-@{
-    ViewData["Title"] = "Reports";
+﻿@{
+    ViewData["Title"] = "System Reports";
 }
 
-<h2 class="mb-4">System Reports</h2>
+<h1 class="mb-4">System Reports</h1>
 
-@if (!Model.Any())
-{
-    <div class="alert alert-info">
-        No appointment data available.
+<div class="row g-4">
+
+    <div class="col-md-6">
+        <div class="card shadow-sm border-primary text-center">
+            <div class="card-body">
+                <h5 class="card-title">Total Appointments</h5>
+                <h2 class="text-primary">@ViewBag.TotalAppointments</h2>
+            </div>
+        </div>
     </div>
-}
-else
-{
-    <div class="card shadow-sm p-3">
-        <table class="table table-striped table-hover align-middle">
 
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Patient</th>
-                    <th>Doctor</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Status</th>
-                    <th>Symptoms</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>@item.AppointmentId</td>
-                        <td>@item.PatientName</td>
-                        <td>@item.DoctorName</td>
-                        <td>@item.RequestedDate.ToShortDateString()</td>
-                        <td>@item.RequestedTime</td>
-
-                        <td>
-                            @if (item.Status == "Approved")
-                            {
-                                <span class="badge bg-success">Approved</span>
-                            }
-                            else if (item.Status == "Pending")
-                            {
-                                <span class="badge bg-warning text-dark">Pending</span>
-                            }
-                            else if (item.Status == "Rejected")
-                            {
-                                <span class="badge bg-danger">Rejected</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">@item.Status</span>
-                            }
-                        </td>
-
-                        <td>@item.Symptoms</td>
-                    </tr>
-                }
-            </tbody>
-
-        </table>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-warning text-center">
+            <div class="card-body">
+                <h5 class="card-title">Pending Appointments</h5>
+                <h2 class="text-warning">@ViewBag.PendingAppointments</h2>
+            </div>
+        </div>
     </div>
-}
+
+</div>
+
+<div class="mt-4">
+    <a asp-action="Dashboard" class="btn btn-secondary">Back to Dashboard</a>
+</div>

@@ -1,9 +1,8 @@
-using MediNote.Web.Models;
+using MediNote.Web.Contracts;
 using MediNote.Web.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Collections.Generic;
 
 namespace MediNote.Web.Pages.Patient
 {
@@ -17,19 +16,22 @@ namespace MediNote.Web.Pages.Patient
             _patientService = patientService;
         }
 
-        public IList<Appointment> Appointments { get; set; } = new List<Appointment>();
+        public PatientDashboardDto Dashboard { get; set; } = new();
+
+        [TempData]
+        public string? StatusMessage { get; set; }
 
         public void OnGet()
         {
             string patientName = User.Identity?.Name ?? string.Empty;
-            Appointments = _patientService.GetPatientAppointments(patientName);
+            Dashboard = _patientService.GetPatientDashboard(patientName);
         }
 
         public IActionResult OnPostCancel(int id)
         {
             string patientName = User.Identity?.Name ?? string.Empty;
-            _patientService.CancelPatientAppointment(id, patientName);
-
+            var success = _patientService.TryCancelPatientAppointment(id, patientName);
+            StatusMessage = success ? "Appointment cancelled successfully." : "Unable to cancel the appointment.";
             return RedirectToPage();
         }
     }

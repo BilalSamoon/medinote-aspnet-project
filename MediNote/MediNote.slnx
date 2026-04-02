@@ -1,5 +1,4 @@
 <Solution>
-  <Project Path="MediNote.API/MediNote.API.csproj" Id="881cd3c0-04e6-466b-bbef-aa84f26fbb6b" />
   <Project Path="MediNote.Tests/MediNote.Tests.csproj" />
   <Project Path="MediNote.Web/MediNote.Web.csproj" />
 </Solution>

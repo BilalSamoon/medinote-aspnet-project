@@ -1,11 +1,11 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-
 namespace MediNote.Web.ViewModels
 {
-    //By: Camila Esguerra
-    /// ViewModel for patients to request new appointments, including doctor selection, date/time, and symptom description.
+    /// <summary>
+    /// ViewModel for patients to request new appointments.
+    /// </summary>
     public class PatientAppointmentRequestViewModel
     {
         [Required]
@@ -22,7 +22,13 @@ namespace MediNote.Web.ViewModels
         public string RequestedTime { get; set; } = "10:00";
 
         [Required(ErrorMessage = "Please provide your symptoms so the doctor can prepare.")]
-        [Display(Name = "Symptoms/Reason for Visit")]
+        [Display(Name = "Symptoms / Reason for Visit")]
         public string Symptoms { get; set; } = string.Empty;
+
+        [Display(Name = "Email or phone for confirmations")]
+        public string ContactRecipient { get; set; } = string.Empty;
+
+        [Display(Name = "Notification Channel")]
+        public string NotificationChannel { get; set; } = "Email";
     }
 }

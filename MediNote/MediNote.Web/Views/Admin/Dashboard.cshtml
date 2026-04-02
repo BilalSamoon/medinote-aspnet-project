@@ -1,36 +1,107 @@
-﻿@{
+@model MediNote.Web.ViewModels.AdminDashboardViewModel
+@{
     ViewData["Title"] = "Admin Dashboard";
 }
 
-<h1 class="mb-4">Admin Dashboard</h1>
+<div class="portal-header mb-4">
+    <div>
+        <span class="eyebrow">Admin Operations</span>
+        <h1>Appointment control center</h1>
+        <p class="text-muted mb-0">Monitor clinic activity and jump directly into the appointment manager.</p>
+    </div>
+    <a asp-action="ManageAppointments" class="btn btn-primary btn-lg">Manage Appointments</a>
+</div>
 
-<div class="row g-4">
+<div class="row g-4 mb-4 align-items-stretch admin-metrics">
+    <div class="col-sm-6 col-xl-3 d-flex">
+        <a asp-action="ManageAppointments" class="metric-card metric-link text-decoration-none d-flex flex-column justify-content-between w-100 h-100">
+            <span>Total appointments</span>
+            <strong>@Model.TotalAppointments</strong>
+            <p>Open the full appointment manager.</p>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3 d-flex">
+        <a asp-action="ManageAppointments" asp-route-status="Pending" class="metric-card metric-link text-decoration-none d-flex flex-column justify-content-between w-100 h-100">
+            <span>Pending appointments</span>
+            <strong>@Model.PendingAppointments</strong>
+            <p>Review requests waiting for action.</p>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3 d-flex">
+        <a asp-action="ManageAppointments" asp-route-status="Approved" class="metric-card metric-link text-decoration-none d-flex flex-column justify-content-between w-100 h-100">
+            <span>Approved appointments</span>
+            <strong>@Model.ApprovedAppointments</strong>
+            <p>See the currently confirmed schedule.</p>
+        </a>
+    </div>
+    <div class="col-sm-6 col-xl-3 d-flex">
+        <a asp-action="ManageAppointments" asp-route-status="Completed" class="metric-card metric-link text-decoration-none d-flex flex-column justify-content-between w-100 h-100">
+            <span>Completed visits</span>
+            <strong>@Model.CompletedAppointments</strong>
+            <p>Check completed clinical workflow items.</p>
+        </a>
+    </div>
+</div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm border-primary">
-            <div class="card-body">
-                <h5 class="card-title">Reports</h5>
-                <a asp-action="Reports" class="btn btn-primary">View</a>
+<div class="row g-4 align-items-stretch">
+    <div class="col-xl-8 d-flex">
+        <div class="app-card w-100 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <span class="eyebrow">Recent activity</span>
+                    <h3 class="mb-0">Recent appointments</h3>
+                </div>
+                <a asp-action="ManageAppointments" class="btn btn-outline-secondary btn-sm">Open full manager</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table appointment-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.RecentAppointments.Any())
+                        {
+                            @foreach (var item in Model.RecentAppointments)
+                            {
+                                <tr>
+                                    <td>#@item.AppointmentId</td>
+                                    <td>@item.PatientName</td>
+                                    <td>@item.DoctorName</td>
+                                    <td>@item.RequestedDate.ToString("yyyy-MM-dd") @item.RequestedTime</td>
+                                    <td><span class="status-pill status-@item.Status.ToLower()">@item.Status</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No appointments yet.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm border-dark">
-            <div class="card-body">
-                <h5 class="card-title">Priority</h5>
-                <a asp-action="PriorityReport" class="btn btn-dark">View</a>
+    <div class="col-xl-4 d-flex">
+        <div class="app-card w-100 h-100">
+            <span class="eyebrow">Workflow highlights</span>
+            <h3>Admin workflow</h3>
+            <ul class="portal-list mb-3">
+                <li>Click the cards above to go directly into appointment management.</li>
+                <li>Help patients by phone and only book within doctor working dates and time windows.</li>
+                <li>Cancel incorrect or unavailable appointments when needed.</li>
+            </ul>
+            <div class="d-grid gap-2 mt-auto">
+                <a asp-action="ManageAppointments" class="btn btn-primary">Open Appointment Manager</a>
+                <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-outline-dark">View Doctor Schedule</a>
             </div>
         </div>
     </div>
-
-    <div class="col-md-4">
-        <div class="card shadow-sm border-success">
-            <div class="card-body">
-                <h5 class="card-title">Appointments</h5>
-                <a asp-action="ManageAppointments" class="btn btn-success">Manage</a>
-            </div>
-        </div>
-    </div>
-
 </div>

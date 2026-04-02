@@ -1,86 +1,262 @@
-﻿@model MediNote.Web.ViewModels.PendingAppointmentsViewModel
-
+@model MediNote.Web.ViewModels.AdminManageAppointmentsViewModel
+@using System.Text.Json
 @{
     ViewData["Title"] = "Manage Appointments";
+    var bookableSlotsJson = JsonSerializer.Serialize(Model.BookableSlots);
 }
 
-<h1 class="mb-4">Manage Appointments</h1>
-
-@if (!string.IsNullOrEmpty(Model.StatusMessage))
-{
-    <div class="alert alert-success shadow-sm">
-        @Model.StatusMessage
+<div class="portal-header mb-4">
+    <div>
+        <span class="eyebrow">Admin Appointment Manager</span>
+        <h1>Manage appointments</h1>
+        <p class="text-muted mb-0">Approve, cancel, and create bookings only within the doctor's published schedule.</p>
     </div>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+{
+    <div class="alert alert-success soft-alert">@Model.StatusMessage</div>
 }
 
-<table class="table table-striped table-hover shadow-sm">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Patient</th>
-            <th>Doctor</th>
-            <th>Date</th>
-            <th>Symptoms</th>
-            <th>Priority</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (!Model.PendingAppointments.Any())
-        {
-            <tr>
-                <td colspan="7" class="text-center text-muted">
-                    No pending appointments.
-                </td>
-            </tr>
-        }
-        else
-        {
-            @foreach (var item in Model.PendingAppointments)
-            {
-                <tr>
-                    <td>@item.AppointmentId</td>
-                    <td>@item.PatientName</td>
-                    <td>@item.DoctorName</td>
-                    <td>@item.RequestedDate.ToShortDateString()</td>
-                    <td>@item.Symptoms</td>
-
-                    <td>
-                        @if (item.Priority == "HIGH")
+<div class="row g-4 mb-4 align-items-stretch">
+    <div class="col-xl-5">
+        <div class="app-card h-100">
+            <h3 class="mb-3">Book for a patient by phone</h3>
+            <form asp-action="CreateAppointmentOnBehalf" method="post" class="row g-3">
+                <div class="col-12">
+                    <label asp-for="NewAppointment.PatientName" class="form-label">Patient Name</label>
+                    <input asp-for="NewAppointment.PatientName" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="NewAppointment.DoctorName" class="form-label">Doctor</label>
+                    <select asp-for="NewAppointment.DoctorName" class="form-select" id="adminDoctorSelect">
+                        <option value="">Select a doctor</option>
+                        @foreach (var doctor in Model.Doctors)
                         {
-                            <span class="badge bg-danger">HIGH</span>
+                            <option value="@doctor">@doctor</option>
                         }
-                        else if (item.Priority == "MEDIUM")
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Available Date</label>
+                    <select name="NewAppointment.RequestedDate" id="adminDateSelect" class="form-select"></select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Available Time</label>
+                    <select name="NewAppointment.RequestedTime" id="adminTimeSelect" class="form-select"></select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="NewAppointment.NotificationChannel" class="form-label">Notification Channel</label>
+                    <select asp-for="NewAppointment.NotificationChannel" class="form-select">
+                        <option>Email</option>
+                        <option>SMS</option>
+                        <option>InApp</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="NewAppointment.ContactRecipient" class="form-label">Recipient</label>
+                    <input asp-for="NewAppointment.ContactRecipient" class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label asp-for="NewAppointment.Symptoms" class="form-label">Reason for Visit</label>
+                    <textarea asp-for="NewAppointment.Symptoms" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary btn-lg">Create Appointment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="col-xl-7">
+        <div class="app-card h-100">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                <div>
+                    <span class="eyebrow">Doctor availability</span>
+                    <h3 class="mb-0">Published working windows</h3>
+                </div>
+                <a asp-controller="Doctor" asp-action="Schedule" class="btn btn-outline-secondary btn-sm">Open doctor schedule</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table appointment-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Doctor</th>
+                            <th>Date</th>
+                            <th>Time Window</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.DoctorSlots.Any())
                         {
-                            <span class="badge bg-warning text-dark">MEDIUM</span>
+                            foreach (var slot in Model.DoctorSlots.Take(14))
+                            {
+                                <tr>
+                                    <td>@slot.DoctorName</td>
+                                    <td>@slot.AvailableDate.ToString("yyyy-MM-dd")</td>
+                                    <td>@slot.StartTime - @slot.EndTime</td>
+                                </tr>
+                            }
                         }
                         else
                         {
-                            <span class="badge bg-success">LOW</span>
+                            <tr><td colspan="3" class="text-center text-muted py-4">No doctor availability published yet.</td></tr>
                         }
-                    </td>
-
-                    <td>
-                        <div class="d-flex gap-2">
-
-                            <form asp-action="ApproveAppointment" method="post">
-                                <input type="hidden" name="id" value="@item.AppointmentId" />
-                                <button class="btn btn-success btn-sm">Approve</button>
-                            </form>
-
-                            <form asp-action="RejectAppointment" method="post">
-                                <input type="hidden" name="id" value="@item.AppointmentId" />
-                                <button class="btn btn-danger btn-sm">Reject</button>
-                            </form>
-
-                        </div>
-                    </td>
-                </tr>
-            }
-        }
-    </tbody>
-</table>
-
-<div class="mt-3">
-    <a asp-action="Dashboard" class="btn btn-secondary">Back to Dashboard</a>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="app-card">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+        <div>
+            <span class="eyebrow">Appointment timeline</span>
+            <h3 class="mb-0">All clinic appointments</h3>
+            <div class="text-muted">@(!string.IsNullOrWhiteSpace(Model.SelectedStatusFilter) ? $"Filtered by {Model.SelectedStatusFilter}" : "Showing all appointments")</div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a asp-action="ManageAppointments" class="btn btn-sm btn-outline-secondary">All</a>
+            <a asp-action="ManageAppointments" asp-route-status="Pending" class="btn btn-sm btn-outline-secondary">Pending</a>
+            <a asp-action="ManageAppointments" asp-route-status="Approved" class="btn btn-sm btn-outline-secondary">Approved</a>
+            <a asp-action="ManageAppointments" asp-route-status="Cancelled" class="btn btn-sm btn-outline-secondary">Cancelled</a>
+            <a asp-action="ManageAppointments" asp-route-status="Completed" class="btn btn-sm btn-outline-secondary">Completed</a>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table appointment-table align-middle">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Status</th>
+                    <th>Contact</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Appointments.Any())
+                {
+                    foreach (var item in Model.Appointments)
+                    {
+                        <tr>
+                            <td>#@item.AppointmentId</td>
+                            <td>@item.PatientName</td>
+                            <td>@item.DoctorName</td>
+                            <td>@item.RequestedDate.ToString("yyyy-MM-dd")</td>
+                            <td>@item.RequestedTime</td>
+                            <td><span class="status-pill status-@item.Status.ToLower()">@item.Status</span></td>
+                            <td>@(string.IsNullOrWhiteSpace(item.ContactRecipient) ? "—" : item.ContactRecipient)</td>
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    @if (item.Status == "Pending")
+                                    {
+                                        <form asp-action="ApproveAppointment" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@item.AppointmentId" />
+                                            <button class="btn btn-sm btn-success">Approve</button>
+                                        </form>
+                                    }
+                                    @if (item.Status == "Pending" || item.Status == "Approved")
+                                    {
+                                        <form asp-action="CancelAppointment" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@item.AppointmentId" />
+                                            <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this appointment?');">Cancel</button>
+                                        </form>
+                                    }
+                                    <a asp-controller="Doctor" asp-action="AppointmentDetails" asp-route-id="@item.AppointmentId" class="btn btn-sm btn-outline-primary">Open</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="8" class="text-center text-muted py-4">No appointments found.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const bookableSlots = @Html.Raw(bookableSlotsJson);
+            const doctorSelect = document.getElementById("adminDoctorSelect");
+            const dateSelect = document.getElementById("adminDateSelect");
+            const timeSelect = document.getElementById("adminTimeSelect");
+            const initialDate = '@Model.NewAppointment.RequestedDate.ToString("yyyy-MM-dd")';
+            const initialTime = '@Model.NewAppointment.RequestedTime';
+
+            function unique(values) {
+                return [...new Set(values)];
+            }
+
+            function buildDates() {
+                const doctor = doctorSelect.value;
+                const dates = unique(bookableSlots
+                    .filter(slot => slot.DoctorName === doctor)
+                    .map(slot => slot.AvailableDate.substring(0, 10)));
+
+                dateSelect.innerHTML = "";
+                if (!dates.length) {
+                    dateSelect.innerHTML = '<option value="">No available dates</option>';
+                    timeSelect.innerHTML = '<option value="">No available times</option>';
+                    return;
+                }
+
+                dates.forEach(date => {
+                    const option = document.createElement("option");
+                    option.value = date;
+                    option.textContent = date;
+                    if (date === initialDate) {
+                        option.selected = true;
+                    }
+                    dateSelect.appendChild(option);
+                });
+
+                if (!dates.includes(dateSelect.value)) {
+                    dateSelect.value = dates[0];
+                }
+
+                buildTimes();
+            }
+
+            function buildTimes() {
+                const doctor = doctorSelect.value;
+                const date = dateSelect.value;
+                const times = unique(bookableSlots
+                    .filter(slot => slot.DoctorName === doctor && slot.AvailableDate.substring(0, 10) === date)
+                    .map(slot => slot.RequestedTime));
+
+                timeSelect.innerHTML = "";
+                if (!times.length) {
+                    timeSelect.innerHTML = '<option value="">No available times</option>';
+                    return;
+                }
+
+                times.forEach(time => {
+                    const option = document.createElement("option");
+                    option.value = time;
+                    option.textContent = time;
+                    if (time === initialTime) {
+                        option.selected = true;
+                    }
+                    timeSelect.appendChild(option);
+                });
+
+                if (!times.includes(timeSelect.value)) {
+                    timeSelect.value = times[0];
+                }
+            }
+
+            doctorSelect.addEventListener("change", buildDates);
+            dateSelect.addEventListener("change", buildTimes);
+            buildDates();
+        });
+    </script>
+}

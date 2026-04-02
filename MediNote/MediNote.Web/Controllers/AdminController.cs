@@ -1,73 +1,84 @@
-﻿using System.Linq;
+using System;
+using System.Linq;
+using MediNote.Web.Contracts;
 using MediNote.Web.Data;
 using MediNote.Web.Services;
 using MediNote.Web.ViewModels;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System.Net.Http.Json;
-using MediNote.Web.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MediNote.Web.Controllers
 {
-    /// Author: Bilal Ahmed Samoon
-    /// Controller responsible for admin-related pages such as dashboard, reports, and appointment priority review.
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly DoctorAppointmentService _doctorAppointmentService;
-        private readonly ScheduleService _scheduleService;
         private readonly PriorityCalculationService _priorityCalculationService;
         private readonly AdminReportService _adminReportService;
         private readonly MediNoteDbContext _context;
+        private readonly PatientService _patientService;
+        private readonly UserRepository _userRepository;
 
         public AdminController(
             DoctorAppointmentService doctorAppointmentService,
             ScheduleService scheduleService,
             PriorityCalculationService priorityCalculationService,
             AdminReportService adminReportService,
-            MediNoteDbContext context)
+            MediNoteDbContext context,
+            PatientService patientService,
+            AvailabilityService availabilityService,
+            UserRepository userRepository)
         {
             _doctorAppointmentService = doctorAppointmentService;
-            _scheduleService = scheduleService;
             _priorityCalculationService = priorityCalculationService;
             _adminReportService = adminReportService;
             _context = context;
+            _patientService = patientService;
+            _userRepository = userRepository;
         }
 
-        // DASHBOARD → API
-        public async Task<IActionResult> Dashboard()
+        public IActionResult Dashboard()
         {
-            using var client = new HttpClient();
+            var recentAppointments = _context.Appointments
+                .OrderByDescending(a => a.RequestedDate)
+                .ThenBy(a => a.RequestedTime)
+                .Take(6)
+                .ToList()
+                .Select(a => new AppointmentSummaryDto
+                {
+                    AppointmentId = a.AppointmentId,
+                    PatientName = a.PatientName,
+                    DoctorName = a.DoctorName,
+                    RequestedDate = a.RequestedDate,
+                    RequestedTime = a.RequestedTime,
+                    Symptoms = a.Symptoms,
+                    Status = a.Status,
+                    CanCancel = a.Status == "Pending" || a.Status == "Approved",
+                    HasDoctorNotes = _context.DoctorNotes.Any(n => n.AppointmentId == a.AppointmentId),
+                    HasPrescriptions = _context.Prescriptions.Any(p => p.AppointmentId == a.AppointmentId)
+                })
+                .ToList();
 
-            var url = "https://localhost:7023/api/admin/stats";
+            var model = new AdminDashboardViewModel
+            {
+                TotalAppointments = _context.Appointments.Count(),
+                PendingAppointments = _context.Appointments.Count(a => a.Status == "Pending"),
+                ApprovedAppointments = _context.Appointments.Count(a => a.Status == "Approved"),
+                CancelledAppointments = _context.Appointments.Count(a => a.Status == "Cancelled"),
+                CompletedAppointments = _context.Appointments.Count(a => a.Status == "Completed"),
+                RecentAppointments = recentAppointments
+            };
 
-            var stats = await client.GetFromJsonAsync<AdminStatsDto>(url);
+            return View(model);
+        }
 
-            ViewBag.TotalAppointments = stats?.Total ?? 0;
-            ViewBag.PendingAppointments = stats?.Pending ?? 0;
-
+        public IActionResult Reports()
+        {
+            ViewBag.TotalAppointments = _adminReportService.GetTotalAppointments(_context.Appointments.Count());
+            ViewBag.PendingAppointments = _adminReportService.GetPendingAppointments(_context.Appointments.Count(a => a.Status == "Pending"));
             return View();
         }
 
-        //REPORTS → API
-        public async Task<IActionResult> Reports(string status)
-        {
-            using var client = new HttpClient();
-
-            var url = "https://localhost:7023/api/admin/all";
-
-            var data = await client.GetFromJsonAsync<List<Appointment>>(url)
-                       ?? new List<Appointment>();
-
-            if (!string.IsNullOrEmpty(status))
-            {
-                data = data.Where(a => a.Status == status).ToList();
-            }
-
-            return View(data);
-        }
-
-       
         public IActionResult PriorityReport()
         {
             var pendingAppointmentsModel = _doctorAppointmentService.GetPendingAppointmentsViewModel();
@@ -85,35 +96,81 @@ namespace MediNote.Web.Controllers
             return View(priorityItems);
         }
 
-        public IActionResult ManageAppointments()
+        public IActionResult ManageAppointments(string? status = null)
         {
-            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
+            var appointments = _doctorAppointmentService.GetAppointmentsForManagement(null, true);
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                appointments = appointments.Where(a => string.Equals(a.Status, status, StringComparison.OrdinalIgnoreCase)).ToList();
+            }
+
+            var model = new AdminManageAppointmentsViewModel
+            {
+                SelectedStatusFilter = status ?? string.Empty,
+                StatusMessage = TempData["AdminStatusMessage"]?.ToString() ?? string.Empty,
+                Doctors = _userRepository.GetDoctors().Select(d => d.DisplayName).ToList(),
+                DoctorSlots = _patientService.GetDoctorSlots(),
+                BookableSlots = _patientService.GetBookableSlotOptions(),
+                Appointments = appointments.Select(a => new AdminAppointmentItemViewModel
+                {
+                    AppointmentId = a.AppointmentId,
+                    PatientName = a.PatientName,
+                    DoctorName = a.DoctorName,
+                    RequestedDate = a.RequestedDate,
+                    RequestedTime = a.RequestedTime,
+                    Symptoms = a.Symptoms,
+                    Status = a.Status,
+                    ContactRecipient = a.ContactRecipient
+                }).ToList(),
+                NewAppointment = new AdminAppointmentCreateViewModel
+                {
+                    RequestedDate = DateTime.Today.AddDays(1),
+                    NotificationChannel = "Email"
+                }
+            };
+
             return View(model);
         }
 
         [HttpPost]
         public IActionResult ApproveAppointment(int id)
         {
-            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
-            model.StatusMessage = _doctorAppointmentService.ApproveAppointment(id);
-
-            return View("ManageAppointments", model);
+            TempData["AdminStatusMessage"] = _doctorAppointmentService.ApproveAppointment(id);
+            return RedirectToAction(nameof(ManageAppointments));
         }
 
         [HttpPost]
-        public IActionResult RejectAppointment(int id)
+        public IActionResult CancelAppointment(int id)
         {
-            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel();
-            model.StatusMessage = _doctorAppointmentService.RejectAppointment(id);
-
-            return View("ManageAppointments", model);
+            TempData["AdminStatusMessage"] = _doctorAppointmentService.CancelAppointment(id);
+            return RedirectToAction(nameof(ManageAppointments));
         }
-    }
 
-    // DTO for API stats
-    public class AdminStatsDto
-    {
-        public int Total { get; set; }
-        public int Pending { get; set; }
+        [HttpPost]
+        public IActionResult CreateAppointmentOnBehalf(AdminManageAppointmentsViewModel model)
+        {
+            if (string.IsNullOrWhiteSpace(model.NewAppointment.PatientName) || string.IsNullOrWhiteSpace(model.NewAppointment.DoctorName) || string.IsNullOrWhiteSpace(model.NewAppointment.Symptoms))
+            {
+                TempData["AdminStatusMessage"] = "Patient name, doctor, and symptoms are required.";
+                return RedirectToAction(nameof(ManageAppointments));
+            }
+
+            var ok = _patientService.TryBookNewAppointment(
+                model.NewAppointment.PatientName,
+                model.NewAppointment.DoctorName,
+                model.NewAppointment.RequestedDate,
+                model.NewAppointment.RequestedTime,
+                model.NewAppointment.Symptoms,
+                model.NewAppointment.ContactRecipient,
+                model.NewAppointment.NotificationChannel,
+                out _,
+                out var errorMessage);
+
+            TempData["AdminStatusMessage"] = ok
+                ? "Appointment booked successfully on behalf of the patient."
+                : errorMessage;
+
+            return RedirectToAction(nameof(ManageAppointments));
+        }
     }
 }

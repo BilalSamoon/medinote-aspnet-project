@@ -1,80 +1,83 @@
 @model MediNote.Web.ViewModels.PendingAppointmentsViewModel
-
 @{
     ViewData["Title"] = "Pending Appointments";
+    var flash = TempData["DoctorStatusMessage"]?.ToString();
 }
 
-<div class="container mt-4">
-    <h1 class="mb-3">Pending Appointments</h1>
-    <p class="text-muted">
-        This page allows the doctor to approve, reject, or reschedule appointment requests.
-    </p>
+<div class="portal-header mb-4">
+    <div>
+        <span class="eyebrow">Doctor Review Queue</span>
+        <h1>Pending appointment requests</h1>
+        <p class="text-muted mb-0">Approve, cancel, or reschedule requests before they enter the active schedule.</p>
+    </div>
+</div>
 
-    @if (Model != null && !string.IsNullOrEmpty(Model.StatusMessage))
-    {
-        <div class="alert alert-info">
-            @Model.StatusMessage
-        </div>
-    }
+@if (!string.IsNullOrWhiteSpace(flash))
+{
+    <div class="alert alert-info soft-alert">@flash</div>
+}
 
-    <div class="card shadow-sm">
-        <div class="card-header bg-warning">
-            Requests Waiting for Review
-        </div>
-        <div class="card-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Patient</th>
-                        <th>Requested Date</th>
-                        <th>Symptoms</th>
-                        <th>Priority</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.PendingAppointments != null && Model.PendingAppointments.Count > 0)
-                    {
-                        foreach (var appointment in Model.PendingAppointments)
-                        {
-                            <tr>
-                                <td>@appointment.PatientName</td>
-                                <td>@appointment.RequestedDate.ToString("yyyy-MM-dd")</td>
-                                <td>@appointment.Symptoms</td>
-                                <td>
-                                    @if(appointment.Priority == "HIGH") { <span class="badge bg-danger">HIGH</span> }
-                                    else if(appointment.Priority == "MEDIUM") { <span class="badge bg-warning text-dark">MEDIUM</span> }
-                                    else { <span class="badge bg-success">@appointment.Priority</span> }
-                                </td>
-                                <td>
-                                    <form asp-action="ApprovePendingAppointment" method="post" class="d-inline">
-                                        <input type="hidden" name="id" value="@appointment.AppointmentId" />
-                                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
-                                    </form>
-
-                                    <form asp-action="RejectPendingAppointment" method="post" class="d-inline">
-                                        <input type="hidden" name="id" value="@appointment.AppointmentId" />
-                                        <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                    </form>
-
-                                    <a asp-controller="Doctor"
-                                       asp-action="Reschedule"
-                                       asp-route-id="@appointment.AppointmentId"
-                                       class="btn btn-primary btn-sm">
-                                        Reschedule
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
+<div class="app-card">
+    <div class="table-responsive">
+        <table class="table appointment-table align-middle">
+            <thead>
+                <tr>
+                    <th>Patient</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Symptoms</th>
+                    <th>Priority</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.PendingAppointments.Any())
+                {
+                    foreach (var appointment in Model.PendingAppointments)
                     {
                         <tr>
-                            <td colspan="4">No pending appointments found.</td>
+                            <td>@appointment.PatientName</td>
+                            <td>@appointment.RequestedDate.ToString("yyyy-MM-dd")</td>
+                            <td>@appointment.RequestedTime</td>
+                            <td>@appointment.Symptoms</td>
+                            <td>
+                                @if (appointment.Priority == "HIGH")
+                                {
+                                    <span class="badge text-bg-danger">HIGH</span>
+                                }
+                                else if (appointment.Priority == "MEDIUM")
+                                {
+                                    <span class="badge text-bg-warning">MEDIUM</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-success">@appointment.Priority</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <form asp-action="ApprovePendingAppointment" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@appointment.AppointmentId" />
+                                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                    </form>
+                                    <form asp-action="CancelPendingAppointment" method="post" class="d-inline">
+                                        <input type="hidden" name="id" value="@appointment.AppointmentId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this appointment?');">Cancel</button>
+                                    </form>
+                                    <a asp-controller="Doctor" asp-action="Reschedule" asp-route-id="@appointment.AppointmentId" class="btn btn-sm btn-outline-primary">Reschedule</a>
+                                    <a asp-controller="Doctor" asp-action="AppointmentDetails" asp-route-id="@appointment.AppointmentId" class="btn btn-sm btn-outline-secondary">Details</a>
+                                </div>
+                            </td>
                         </tr>
                     }
-                </tbody>
-            </table>
-        </div>
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">No pending appointments found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>

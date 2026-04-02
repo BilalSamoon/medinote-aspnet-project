@@ -1,0 +1,104 @@
+@page "{id:int}"
+@model MediNote.Web.Pages.Patient.AppointmentDetailsModel
+@{
+    ViewData["Title"] = "Appointment Details";
+}
+
+<div class="portal-header mb-4">
+    <div>
+        <span class="eyebrow">Appointment Detail</span>
+        <h1>Appointment #@Model.Detail.Appointment.AppointmentId</h1>
+        <p class="text-muted mb-0">View your doctor notes, follow-up plan, prescriptions, and sent confirmations.</p>
+    </div>
+    <a asp-page="/Patient/Dashboard" class="btn btn-outline-secondary btn-lg">Back to Portal</a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="app-card h-100">
+            <h3>Visit summary</h3>
+            <p><strong>Doctor:</strong> @Model.Detail.Appointment.DoctorName</p>
+            <p><strong>Date:</strong> @Model.Detail.Appointment.RequestedDate.ToString("yyyy-MM-dd")</p>
+            <p><strong>Time:</strong> @Model.Detail.Appointment.RequestedTime</p>
+            <p><strong>Status:</strong> <span class="status-pill status-@Model.Detail.Appointment.Status.ToLower()">@Model.Detail.Appointment.Status</span></p>
+            <p class="mb-0"><strong>Symptoms:</strong> @Model.Detail.Appointment.Symptoms</p>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="app-card h-100">
+            <h3>Prescription status</h3>
+            <p class="mb-2">This page updates after your doctor completes the appointment and enters the clinical documentation.</p>
+            <div class="d-flex gap-2 flex-wrap">
+                <span class="badge text-bg-light border">Notes: @(Model.Detail.DoctorNotes.Count)</span>
+                <span class="badge text-bg-light border">Prescriptions: @(Model.Detail.Prescriptions.Count)</span>
+                <span class="badge text-bg-light border">Notifications: @(Model.Detail.Notifications.Count)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="app-card h-100">
+            <h3>Doctor notes</h3>
+            @if (Model.Detail.DoctorNotes.Any())
+            {
+                foreach (var note in Model.Detail.DoctorNotes)
+                {
+                    <div class="stack-card mb-3">
+                        <div class="small text-muted">@note.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm") · @note.DoctorName</div>
+                        <div class="mt-2">@note.Note</div>
+                        @if (!string.IsNullOrWhiteSpace(note.FollowUpInstructions))
+                        {
+                            <div class="mt-2"><strong>Follow-up:</strong> @note.FollowUpInstructions</div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">No doctor notes have been added yet.</div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-card h-100">
+            <h3>Prescriptions</h3>
+            @if (Model.Detail.Prescriptions.Any())
+            {
+                foreach (var item in Model.Detail.Prescriptions)
+                {
+                    <div class="stack-card mb-3">
+                        <div><strong>@item.MedicationName</strong></div>
+                        <div class="text-muted small">@item.Dosage · @item.Frequency · @item.Duration</div>
+                        <div class="mt-2">@item.Instructions</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">No prescriptions have been added yet.</div>
+            }
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="app-card h-100">
+            <h3>Confirmation & reminders</h3>
+            @if (Model.Detail.Notifications.Any())
+            {
+                foreach (var item in Model.Detail.Notifications)
+                {
+                    <div class="stack-card mb-3">
+                        <div class="small text-muted">@item.Type · @item.Channel</div>
+                        <div class="small text-muted">@item.CreatedAtUtc.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                        <div class="mt-2">@item.Message</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">No notifications logged yet.</div>
+            }
+        </div>
+    </div>
+</div>
