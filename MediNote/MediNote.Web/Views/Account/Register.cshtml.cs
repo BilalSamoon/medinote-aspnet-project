@@ -34,6 +34,9 @@ namespace MediNote.Web.Pages.Account
         [BindProperty]
         public string Role { get; set; } = "Patient";
 
+        [BindProperty]
+        public string SecurityId { get; set; } = string.Empty;
+
         [TempData]
         public string? SuccessMessage { get; set; }
 
@@ -58,7 +61,7 @@ namespace MediNote.Web.Pages.Account
                 return Page();
             }
 
-            var success = _userRepository.RegisterUser(FirstName, LastName, Username, Password, Role, string.Empty, Email, out string errorMessage, out string issuedSecurityId);
+            var success = _userRepository.RegisterUser(FirstName, LastName, Username, Password, Role, SecurityId, Email, out string errorMessage, out string issuedSecurityId, false);
             if (!success)
             {
                 ModelState.AddModelError(string.Empty, errorMessage);
@@ -66,9 +69,9 @@ namespace MediNote.Web.Pages.Account
             }
 
             SuccessMessage = Role == "Doctor" || Role == "Admin"
-                ? $"{Role} account created successfully. Please save your {Role} ID before logging in."
+                ? $"{Role} account created successfully. You can now log in with your credentials and ID."
                 : "Account created successfully. You can now log in.";
-            IssuedSecurityId = issuedSecurityId;
+            IssuedSecurityId = string.Empty;
 
             return RedirectToPage("/Account/Login");
         }

@@ -19,6 +19,23 @@ namespace MediNote.Web.Services
             _context = context;
         }
 
+        public string GenerateSecurityCodeForRole(string role)
+        {
+            var normalizedRole = string.IsNullOrWhiteSpace(role) ? "Doctor" : role.Trim();
+            var prefix = string.Equals(normalizedRole, "Admin", StringComparison.OrdinalIgnoreCase) ? "ADM" : "DOC";
+            var code = GenerateRoleId(prefix);
+
+            _context.SecurityCodes.Add(new SecurityCode
+            {
+                Code = code,
+                Role = normalizedRole,
+                IsClaimed = false
+            });
+            _context.SaveChanges();
+
+            return code;
+        }
+
         public User? Authenticate(string username, string password, string securityId = "")
         {
             var user = _context.Users.FirstOrDefault(u => u.Username == username && u.Password == password);
@@ -47,7 +64,8 @@ namespace MediNote.Web.Services
             string securityId,
             string email,
             out string errorMessage,
-            out string issuedSecurityId)
+            out string issuedSecurityId,
+            bool isAdminAction = false)
         {
             errorMessage = string.Empty;
             issuedSecurityId = string.Empty;
@@ -71,15 +89,31 @@ namespace MediNote.Web.Services
             }
 
             var resolvedSecurityId = string.Empty;
-            if (string.Equals(normalizedRole, "Doctor", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(normalizedRole, "Doctor", StringComparison.OrdinalIgnoreCase) || string.Equals(normalizedRole, "Admin", StringComparison.OrdinalIgnoreCase))
             {
-                resolvedSecurityId = GenerateRoleId("DOC");
-                issuedSecurityId = resolvedSecurityId;
-            }
-            else if (string.Equals(normalizedRole, "Admin", StringComparison.OrdinalIgnoreCase))
-            {
-                resolvedSecurityId = GenerateRoleId("ADM");
-                issuedSecurityId = resolvedSecurityId;
+                if (isAdminAction)
+                {
+                    var prefix = string.Equals(normalizedRole, "Admin", StringComparison.OrdinalIgnoreCase) ? "ADM" : "DOC";
+                    resolvedSecurityId = GenerateRoleId(prefix);
+                    issuedSecurityId = resolvedSecurityId;
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(securityId))
+                    {
+                        errorMessage = $"{normalizedRole} registration requires a valid Security ID provided by an administrator.";
+                        return false;
+                    }
+
+                    var codeRecord = _context.SecurityCodes.FirstOrDefault(c => c.Code == securityId && c.Role == normalizedRole);
+                    if (codeRecord == null || codeRecord.IsClaimed)
+                    {
+                        errorMessage = $"The provided {normalizedRole} Security ID is invalid or already claimed.";
+                        return false;
+                    }
+
+                    resolvedSecurityId = securityId;
+                }
             }
 
             var newUser = new User
@@ -121,7 +155,7 @@ namespace MediNote.Web.Services
 
         public bool RegisterUser(string firstName, string lastName, string username, string password, string role, string securityId, out string errorMessage)
         {
-            return RegisterUser(firstName, lastName, username, password, role, securityId, string.Empty, out errorMessage, out _);
+            return RegisterUser(firstName, lastName, username, password, role, securityId, string.Empty, out errorMessage, out _, false);
         }
 
         public List<User> GetDoctors()

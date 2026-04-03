@@ -1,0 +1,57 @@
+@model MediNote.Web.ViewModels.AdminGenerateUserViewModel
+@{
+    ViewData["Title"] = "Create Doctor / Admin";
+}
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <h2>Create Doctor / Admin Account</h2>
+        <p class="text-muted">Register a new Doctor or Admin account. A Security ID will be automatically generated and assigned to this user, which they need for login.</p>
+
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success">
+                <strong>@Model.SuccessMessage</strong><br/>
+                Please securely provide the following ID to the user for login: <strong>@Model.IssuedSecurityId</strong>
+            </div>
+        }
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger">
+                <div asp-validation-summary="All"></div>
+            </div>
+        }
+
+        <form method="post" class="mt-4">
+            <div class="mb-3">
+                <label asp-for="FirstName" class="form-label">First Name</label>
+                <input asp-for="FirstName" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="LastName" class="form-label">Last Name</label>
+                <input asp-for="LastName" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label">Username</label>
+                <input asp-for="Username" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label">Email</label>
+                <input asp-for="Email" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label">Temporary Password</label>
+                <input asp-for="Password" type="password" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Role" class="form-label">Role</label>
+                <select asp-for="Role" class="form-select">
+                    <option value="Doctor">Doctor</option>
+                    <option value="Admin">Admin</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Create User & Generate ID</button>
+        </form>
+    </div>
+</div>

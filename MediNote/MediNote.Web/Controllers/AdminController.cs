@@ -172,5 +172,51 @@ namespace MediNote.Web.Controllers
 
             return RedirectToAction(nameof(ManageAppointments));
         }
+
+        [HttpGet]
+        public IActionResult GenerateUser()
+        {
+            return View(new AdminGenerateUserViewModel());
+        }
+
+        [HttpPost]
+        public IActionResult GenerateUser(AdminGenerateUserViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var success = _userRepository.RegisterUser(
+                model.FirstName,
+                model.LastName,
+                model.Username,
+                model.Password,
+                model.Role,
+                string.Empty,
+                model.Email,
+                out var errorMessage,
+                out var issuedSecurityId,
+                isAdminAction: true);
+
+            if (!success)
+            {
+                ModelState.AddModelError(string.Empty, errorMessage);
+                return View(model);
+            }
+
+            model.SuccessMessage = $"Account for {model.Role} '{model.FirstName} {model.LastName}' created successfully.";
+            model.IssuedSecurityId = issuedSecurityId;
+
+            // Clear passwords and inputs on success
+            ModelState.Clear();
+            model.FirstName = "";
+            model.LastName = "";
+            model.Username = "";
+            model.Password = "";
+            model.Email = "";
+
+            return View(model);
+        }
     }
 }

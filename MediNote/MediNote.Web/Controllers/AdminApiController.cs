@@ -15,12 +15,14 @@ namespace MediNote.Web.Controllers
         private readonly MediNoteDbContext _context;
         private readonly PatientService _patientService;
         private readonly DoctorAppointmentService _doctorAppointmentService;
+        private readonly UserRepository _userRepository;
 
-        public AdminApiController(MediNoteDbContext context, PatientService patientService, DoctorAppointmentService doctorAppointmentService)
+        public AdminApiController(MediNoteDbContext context, PatientService patientService, DoctorAppointmentService doctorAppointmentService, UserRepository userRepository)
         {
             _context = context;
             _patientService = patientService;
             _doctorAppointmentService = doctorAppointmentService;
+            _userRepository = userRepository;
         }
 
         [HttpGet("dashboard")]
@@ -117,6 +119,45 @@ namespace MediNote.Web.Controllers
         public IActionResult GetBookableSlots([FromQuery] string? doctorName = null)
         {
             return Ok(_patientService.GetBookableSlotOptions(doctorName));
+        }
+
+        [HttpPost("users/generate")]
+        public IActionResult GenerateUser([FromBody] MediNote.Web.ViewModels.AdminGenerateUserViewModel request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var success = _userRepository.RegisterUser(
+                request.FirstName,
+                request.LastName,
+                request.Username,
+                request.Password,
+                request.Role,
+                string.Empty,
+                request.Email,
+                out var errorMessage,
+                out var issuedSecurityId,
+                isAdminAction: true);
+
+            if (!success)
+            {
+                return BadRequest(new { message = errorMessage });
+            }
+
+            return Ok(new
+            {
+                message = $"Account for {request.Role} '{request.FirstName} {request.LastName}' created successfully.",
+                issuedSecurityId
+            });
+        }
+
+        [HttpPost("security-codes/generate")]
+        public IActionResult GenerateSecurityCode([FromBody] string role)
+        {
+            var code = _userRepository.GenerateSecurityCodeForRole(role);
+            return Ok(new { message = $"Security code generated for {role}.", code });
         }
     }
 }

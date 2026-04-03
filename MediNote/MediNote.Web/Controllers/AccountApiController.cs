@@ -27,7 +27,8 @@ namespace MediNote.Web.Controllers
                 request.SecurityId,
                 request.Email,
                 out var errorMessage,
-                out var issuedSecurityId);
+                out var issuedSecurityId,
+                false);
 
             if (!success)
             {
@@ -40,8 +41,7 @@ namespace MediNote.Web.Controllers
             {
                 message = roleLabel == "Patient"
                     ? "Account created successfully."
-                    : $"{roleLabel} account created successfully. Save the issued {roleLabel} ID for future login.",
-                issuedSecurityId
+                    : $"{roleLabel} account created successfully. You can now log in."
             });
         }
     }

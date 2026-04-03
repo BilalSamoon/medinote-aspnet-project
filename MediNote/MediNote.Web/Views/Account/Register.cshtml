@@ -55,14 +55,18 @@
                         <option value="Admin">Admin</option>
                     </select>
                 </div>
+                <div class="col-md-6" id="securityIdContainer" style="display:none;">
+                    <label asp-for="SecurityId" class="form-label">Security ID</label>
+                    <input asp-for="SecurityId" class="form-control form-control-lg" placeholder="Required for Doctors/Admins" />
+                </div>
             </div>
 
             <div class="info-strip mt-3" id="doctorInfo" style="display:none;">
-                <strong>Doctor registration:</strong> MediNote will automatically issue your Doctor ID after signup. Save it and use it during login.
+                <strong>Doctor registration:</strong> You must enter a valid Doctor ID provided by an administrator.
             </div>
 
             <div class="info-strip mt-3" id="adminInfo" style="display:none;">
-                <strong>Admin registration:</strong> Each administrator receives a unique Admin ID after signup. Use that Admin ID with your username and password to sign in.
+                <strong>Admin registration:</strong> You must enter a valid Admin ID provided by an administrator.
             </div>
 
             <div class="d-flex gap-3 mt-4 flex-wrap">
@@ -79,11 +83,13 @@
             const roleSelect = document.getElementById("roleSelect");
             const doctorInfo = document.getElementById("doctorInfo");
             const adminInfo = document.getElementById("adminInfo");
+            const securityIdContainer = document.getElementById("securityIdContainer");
 
             function toggleRoleUI() {
                 const role = roleSelect.value;
                 doctorInfo.style.display = role === "Doctor" ? "block" : "none";
                 adminInfo.style.display = role === "Admin" ? "block" : "none";
+                securityIdContainer.style.display = role === "Patient" ? "none" : "block";
             }
 
             roleSelect.addEventListener("change", toggleRoleUI);

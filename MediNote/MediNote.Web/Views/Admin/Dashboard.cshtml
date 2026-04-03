@@ -9,7 +9,10 @@
         <h1>Appointment control center</h1>
         <p class="text-muted mb-0">Monitor clinic activity and jump directly into the appointment manager.</p>
     </div>
-    <a asp-action="ManageAppointments" class="btn btn-primary btn-lg">Manage Appointments</a>
+    <div class="d-flex gap-2">
+        <a asp-action="GenerateUser" class="btn btn-outline-primary btn-lg">Create Doctor/Admin</a>
+        <a asp-action="ManageAppointments" class="btn btn-primary btn-lg">Manage Appointments</a>
+    </div>
 </div>
 
 <div class="row g-4 mb-4 align-items-stretch admin-metrics">
