@@ -3,6 +3,8 @@ using MediNote.Web.Contracts;
 
 namespace MediNote.Web.ViewModels
 {
+    // By: Camila Esguerra
+    // ViewModel for the admin dashboard, providing aggregated appointment data and recent activity summaries.
     public class AdminDashboardViewModel
     {
         public int TotalAppointments { get; set; }

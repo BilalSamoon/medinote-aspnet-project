@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MediNote.Web.Services
 {
     /// <summary>
+    /// By: Camila Esguerra
     /// Repository responsible for authentication and registration.
     /// </summary>
     public class UserRepository

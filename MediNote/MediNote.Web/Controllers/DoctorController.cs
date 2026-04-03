@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace MediNote.Web.Controllers
 {
     /// <summary>
+    /// By: Daniel 
     /// Controller responsible for doctor-related pages.
     /// </summary>
     [Authorize(Roles = "Doctor,Admin")]

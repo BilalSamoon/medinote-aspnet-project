@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MediNote.Web.Controllers
 {
+    //By: Bilal 
+    // API controller for admin-related operations, including dashboard data retrieval, appointment management, doctor slot information, and user account generation. Access to this controller is restricted to users with the "Admin" role.s
     [ApiController]
     [Authorize(Roles = "Admin")]
     [Route("api/admin")]

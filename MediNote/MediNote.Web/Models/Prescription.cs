@@ -3,6 +3,8 @@ using System;
 namespace MediNote.Web.Models
 {
     /// <summary>
+    /// By: Daniel
+    /// 
     /// Prescription attached to an appointment.
     /// </summary>
     public class Prescription

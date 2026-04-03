@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace MediNote.Web.ViewModels
 {
     /// <summary>
+    /// By: Daniel
     /// View model used by the Pending Appointments page.
     /// </summary>
     public class PendingAppointmentsViewModel

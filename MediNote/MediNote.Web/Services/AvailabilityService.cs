@@ -8,6 +8,7 @@ using MediNote.Web.ViewModels;
 namespace MediNote.Web.Services
 {
     /// <summary>
+    /// By: Camila Esguerra
     /// Provides business logic for doctor availability.
     /// </summary>
     public class AvailabilityService

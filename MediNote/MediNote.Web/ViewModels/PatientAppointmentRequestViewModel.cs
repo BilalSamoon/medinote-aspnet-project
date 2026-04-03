@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace MediNote.Web.ViewModels
 {
     /// <summary>
+    /// By: Camila Esguerra
     /// ViewModel for patients to request new appointments.
     /// </summary>
     public class PatientAppointmentRequestViewModel

@@ -3,6 +3,7 @@ using System;
 namespace MediNote.Web.Models
 {
     /// <summary>
+    /// By: Daniel 
     /// Clinical note written by a doctor for a completed or ongoing appointment.
     /// </summary>
     public class DoctorNote

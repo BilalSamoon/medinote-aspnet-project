@@ -2,6 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MediNote.Web.ViewModels
 {
+    //By: Camila Esguerra
+    // ViewModel for the admin user generation page, containing properties for user details and validation attributes to ensure required fields are filled out correctly.
     public class AdminGenerateUserViewModel
     {
         [Required]

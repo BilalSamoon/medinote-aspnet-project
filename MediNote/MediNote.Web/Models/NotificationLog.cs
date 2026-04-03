@@ -3,6 +3,8 @@ using System;
 namespace MediNote.Web.Models
 {
     /// <summary>
+    /// By: Daniel
+    /// 
     /// Internal notification log used for confirmation and reminder tracking.
     /// This can later be connected to email or SMS providers.
     /// </summary>

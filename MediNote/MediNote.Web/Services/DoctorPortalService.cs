@@ -7,7 +7,9 @@ using MediNote.Web.Models;
 namespace MediNote.Web.Services
 {
     /// <summary>
-    /// Rich doctor workflow service for notes, prescriptions, and reminder actions.
+    /// By: Daniel
+    /// 
+    /// Doctor workflow service for notes, prescriptions, and reminder actions.
     /// </summary>
     public class DoctorPortalService
     {

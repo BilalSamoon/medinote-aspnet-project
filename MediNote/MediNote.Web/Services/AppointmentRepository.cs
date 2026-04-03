@@ -7,6 +7,7 @@ using MediNote.Web.Models;
 namespace MediNote.Web.Services
 {
     /// <summary>
+    /// By: Camila Esguerra
     /// Repository responsible for managing appointment data.
     /// </summary>
     public class AppointmentRepository

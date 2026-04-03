@@ -6,6 +6,7 @@ using MediNote.Web.ViewModels;
 namespace MediNote.Web.Services
 {
     /// <summary>
+    /// By: Daniel
     /// Provides schedule-related data for doctor pages.
     /// </summary>
     public class ScheduleService

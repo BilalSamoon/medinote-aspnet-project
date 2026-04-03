@@ -4,6 +4,8 @@ using MediNote.Web.Contracts;
 
 namespace MediNote.Web.ViewModels
 {
+    // By: Camila Esguerra
+    // ViewModel for the admin appointment management page, encapsulating all necessary data for displaying and managing appointments.
     public class AdminManageAppointmentsViewModel
     {
         public string StatusMessage { get; set; } = string.Empty;

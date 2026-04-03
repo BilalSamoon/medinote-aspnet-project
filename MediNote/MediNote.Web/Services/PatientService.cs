@@ -8,6 +8,7 @@ using MediNote.Web.Models;
 namespace MediNote.Web.Services
 {
     /// <summary>
+    /// By: Camila Esguerra
     /// Patient service for patient-specific operations.
     /// </summary>
     public class PatientService

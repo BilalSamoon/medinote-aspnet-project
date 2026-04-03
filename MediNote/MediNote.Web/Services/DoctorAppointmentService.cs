@@ -8,6 +8,7 @@ using MediNote.Web.ViewModels;
 namespace MediNote.Web.Services
 {
     /// <summary>
+    /// By: Daniel 
     /// Provides business logic for doctor appointment actions.
     /// </summary>
     public class DoctorAppointmentService

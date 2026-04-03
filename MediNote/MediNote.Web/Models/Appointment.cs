@@ -3,6 +3,7 @@ using System;
 namespace MediNote.Web.Models
 {
     /// <summary>
+    /// By: Camila Esguerra
     /// Represents an appointment request made by a patient to see a doctor.
     /// </summary>
     public class Appointment

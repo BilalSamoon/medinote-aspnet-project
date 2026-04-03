@@ -4,17 +4,23 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MediNote.Web.Controllers
 {
+
+    // By: Camila Esguerra
+    // API controller for handling account-related operations such as registration.
     [ApiController]
     [Route("api/account")]
     public class AccountApiController : ControllerBase
     {
         private readonly UserRepository _userRepository;
 
+
+        // Constructor that injects the UserRepository dependency.
         public AccountApiController(UserRepository userRepository)
         {
             _userRepository = userRepository;
         }
 
+        // POST endpoint for registering a new user account.
         [HttpPost("register")]
         public IActionResult Register([FromBody] RegisterAccountRequest request)
         {
@@ -30,6 +36,7 @@ namespace MediNote.Web.Controllers
                 out var issuedSecurityId,
                 false);
 
+            // If registration fails, return a BadRequest with the error message.
             if (!success)
             {
                 return BadRequest(new { message = errorMessage });
@@ -37,6 +44,7 @@ namespace MediNote.Web.Controllers
 
             var roleLabel = request.Role == "Doctor" || request.Role == "Admin" ? request.Role : "Patient";
 
+            // If registration is successful, return an Ok response with a success message.
             return Ok(new
             {
                 message = roleLabel == "Patient"

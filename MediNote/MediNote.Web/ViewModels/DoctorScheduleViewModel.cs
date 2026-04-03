@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace MediNote.Web.ViewModels
 {
     /// <summary>
+    /// By: Daniel
     /// View model used to display the doctor's schedule page.
     /// </summary>
     public class DoctorScheduleViewModel

@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 namespace MediNote.Web.Data
 {
     /// <summary>
-    /// Db context for the MediNote application.
+    /// By: Camila Esguerra
+    /// This class represents the Entity Framework Core database context for the MediNote application. It defines the DbSet properties for each of the entities in the application, such as Users, Appointments, Availabilities, SecurityCodes, DoctorNotes, Prescriptions, and NotificationLogs. The OnModelCreating method is overridden to seed initial data for users and security codes when the database is created. This context is used throughout the application to interact with the database and perform CRUD operations on the defined entities.
     /// </summary>
     public class MediNoteDbContext : DbContext
     {
@@ -13,6 +14,7 @@ namespace MediNote.Web.Data
         {
         }
 
+        // DbSet properties for each entity in the application, allowing for querying and saving instances of these entities to the database.s
         public DbSet<User> Users { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Availability> Availabilities { get; set; }
@@ -25,6 +27,7 @@ namespace MediNote.Web.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Seed initial data for users and security codes when the database is created.
             modelBuilder.Entity<User>().HasData(
                 new User
                 {
@@ -37,6 +40,7 @@ namespace MediNote.Web.Data
                     SecurityId = "DOC123",
                     Email = "doctor1@medinote.local"
                 },
+                // Admin user with a security code that is already claimed
                 new User
                 {
                     Id = 2,
@@ -48,6 +52,7 @@ namespace MediNote.Web.Data
                     SecurityId = "ADM123",
                     Email = "admin1@medinote.local"
                 },
+                // Patient user without a security code
                 new User
                 {
                     Id = 3,
@@ -60,6 +65,7 @@ namespace MediNote.Web.Data
                     Email = "patient1@medinote.local"
                 });
 
+            // Seed initial security codes, including some that are already claimed and some that are available for use.
             modelBuilder.Entity<SecurityCode>().HasData(
                 new SecurityCode { Id = 1, Code = "DOC123", Role = "Doctor", IsClaimed = true },
                 new SecurityCode { Id = 2, Code = "ADM123", Role = "Admin", IsClaimed = true },

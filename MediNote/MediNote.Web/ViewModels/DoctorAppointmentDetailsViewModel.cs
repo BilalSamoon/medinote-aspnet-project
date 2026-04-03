@@ -2,6 +2,8 @@ using MediNote.Web.Contracts;
 
 namespace MediNote.Web.ViewModels
 {
+    /// By: Daniel
+    // ViewModel for doctor appointment details page, including appointment info, doctor notes, prescriptions, and reminder setup.
     public class DoctorAppointmentDetailsViewModel
     {
         public AppointmentDetailDto Detail { get; set; } = new();

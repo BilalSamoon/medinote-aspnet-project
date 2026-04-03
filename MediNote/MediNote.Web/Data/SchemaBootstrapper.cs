@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore;
 namespace MediNote.Web.Data
 {
     /// <summary>
+    /// By: Camila Esguerra
+    ///
     /// Repairs older local databases so the latest app version can still start
-    /// without requiring the user to manually drop and recreate the database.
+    /// without requiring the user to manually drop and recreate the database. Automated if you may lol
     /// </summary>
     public static class SchemaBootstrapper
     {

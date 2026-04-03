@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MediNote.Web.Controllers
 {
+    //By: Bilal 
+    // Controller responsible for admin-related pages, including dashboard, reports, appointment management, and user account generation. Access to this controller is restricted to users with the "Admin" role.
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
