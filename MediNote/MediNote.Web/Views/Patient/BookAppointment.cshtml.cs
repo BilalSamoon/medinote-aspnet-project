@@ -1,12 +1,11 @@
-using MediNote.Web.Contracts;
+﻿using MediNote.Web.Contracts;
 using MediNote.Web.Services;
 using MediNote.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
-using System.Linq;
+using System.Net.Http.Json;
 
 namespace MediNote.Web.Pages.Patient
 {
@@ -23,7 +22,7 @@ namespace MediNote.Web.Pages.Patient
         }
 
         [BindProperty]
-        public PatientAppointmentRequestViewModel RequestModel { get; set; } = new PatientAppointmentRequestViewModel();
+        public PatientAppointmentRequestViewModel RequestModel { get; set; } = new();
 
         public List<SelectListItem> AvailableDoctors { get; set; } = new();
         public List<DoctorSlotDto> AvailableDoctorSlots { get; set; } = new();
@@ -35,31 +34,34 @@ namespace MediNote.Web.Pages.Patient
             PopulateBookingData();
         }
 
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPost()
         {
             PopulateDoctors();
             PopulateBookingData();
 
             if (!ModelState.IsValid)
-            {
                 return Page();
-            }
 
-            string patientName = User.Identity?.Name ?? "Unknown";
-            var ok = _patientService.TryBookNewAppointment(
-                patientName,
-                RequestModel.DoctorName,
-                RequestModel.RequestedDate,
-                RequestModel.RequestedTime,
-                RequestModel.Symptoms,
-                RequestModel.ContactRecipient,
-                RequestModel.NotificationChannel,
-                out _,
-                out var errorMessage);
+            using var client = new HttpClient();
 
-            if (!ok)
+            var url = $"{Request.Scheme}://{Request.Host}/api/patient/appointments";
+
+            var request = new BookAppointmentRequest
             {
-                ModelState.AddModelError(string.Empty, errorMessage);
+                DoctorName = RequestModel.DoctorName,
+                RequestedDate = RequestModel.RequestedDate,
+                RequestedTime = RequestModel.RequestedTime,
+                Symptoms = RequestModel.Symptoms,
+                ContactRecipient = RequestModel.ContactRecipient,
+                NotificationChannel = RequestModel.NotificationChannel
+            };
+
+            var response = await client.PostAsJsonAsync(url, request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError(string.Empty, error);
                 return Page();
             }
 
@@ -68,19 +70,19 @@ namespace MediNote.Web.Pages.Patient
 
         private void PopulateDoctors()
         {
-            var doctors = _userRepository.GetDoctors().Select(u => u.DisplayName).ToList();
-            AvailableDoctors = doctors.Select(d => new SelectListItem { Value = d, Text = d }).ToList();
+            var doctors = _userRepository.GetDoctors()
+                .Select(u => u.DisplayName)
+                .ToList();
+
+            AvailableDoctors = doctors
+                .Select(d => new SelectListItem { Value = d, Text = d })
+                .ToList();
         }
 
         private void PopulateBookingData()
         {
             AvailableDoctorSlots = _patientService.GetDoctorSlots().Take(16).ToList();
             BookableSlots = _patientService.GetBookableSlotOptions();
-
-            if (string.IsNullOrWhiteSpace(RequestModel.DoctorName) && AvailableDoctors.Any())
-            {
-                RequestModel.DoctorName = AvailableDoctors.First().Value ?? string.Empty;
-            }
         }
     }
 }

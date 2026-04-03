@@ -9,7 +9,7 @@ namespace MediNote.Web.Controllers
     //BY: Daniel
     // API controller for doctor-related operations, including schedule retrieval, availability management, appointment approval/cancellation, and doctor notes/prescriptions management.
     [ApiController]
-    [Authorize(Roles = "Doctor,Admin")]
+  
     [Route("api/doctor")]
     public class DoctorApiController : ControllerBase
     {

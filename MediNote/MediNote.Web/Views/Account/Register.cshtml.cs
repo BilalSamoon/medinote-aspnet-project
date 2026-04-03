@@ -1,18 +1,12 @@
-using MediNote.Web.Services;
+using MediNote.Web.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Net.Http.Json;
 
 namespace MediNote.Web.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private readonly UserRepository _userRepository;
-
-        public RegisterModel(UserRepository userRepository)
-        {
-            _userRepository = userRepository;
-        }
-
         [BindProperty]
         public string FirstName { get; set; } = string.Empty;
 
@@ -40,38 +34,53 @@ namespace MediNote.Web.Pages.Account
         [TempData]
         public string? SuccessMessage { get; set; }
 
-        [TempData]
-        public string? IssuedSecurityId { get; set; }
-
         public void OnGet()
         {
         }
 
-        public IActionResult OnPost()
+        public async Task<IActionResult> OnPost()
         {
-            if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(LastName) || string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
+            if (string.IsNullOrWhiteSpace(FirstName) ||
+                string.IsNullOrWhiteSpace(LastName) ||
+                string.IsNullOrWhiteSpace(Username) ||
+                string.IsNullOrWhiteSpace(Password))
             {
-                ModelState.AddModelError(string.Empty, "First name, last name, username, and password are required.");
+                ModelState.AddModelError(string.Empty, "All required fields must be filled.");
                 return Page();
             }
 
             if (Password != ConfirmPassword)
             {
-                ModelState.AddModelError(string.Empty, "Password and confirm password must match.");
+                ModelState.AddModelError(string.Empty, "Passwords do not match.");
                 return Page();
             }
 
-            var success = _userRepository.RegisterUser(FirstName, LastName, Username, Password, Role, SecurityId, Email, out string errorMessage, out string issuedSecurityId, false);
-            if (!success)
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/account/register";
+
+            var request = new RegisterAccountRequest
             {
-                ModelState.AddModelError(string.Empty, errorMessage);
+                FirstName = FirstName,
+                LastName = LastName,
+                Username = Username,
+                Password = Password,
+                Role = Role,
+                SecurityId = SecurityId,
+                Email = Email
+            };
+
+            var response = await client.PostAsJsonAsync(url, request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                ModelState.AddModelError(string.Empty, error);
                 return Page();
             }
 
-            SuccessMessage = Role == "Doctor" || Role == "Admin"
-                ? $"{Role} account created successfully. You can now log in with your credentials and ID."
-                : "Account created successfully. You can now log in.";
-            IssuedSecurityId = string.Empty;
+            SuccessMessage = "Account created successfully. You can now log in.";
 
             return RedirectToPage("/Account/Login");
         }

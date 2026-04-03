@@ -3,6 +3,7 @@ using MediNote.Web.Services;
 using MediNote.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Json;
 
 namespace MediNote.Web.Controllers
 {
@@ -30,17 +31,28 @@ namespace MediNote.Web.Controllers
             _doctorPortalService = doctorPortalService;
         }
 
-        public IActionResult Schedule()
+        public async Task<IActionResult> Schedule()
         {
-            var doctorName = User.IsInRole("Admin") ? null : User.Identity?.Name;
-            var model = _scheduleService.GetDoctorSchedule(doctorName);
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/doctor/schedule";
+
+            var model = await client.GetFromJsonAsync<DoctorScheduleViewModel>(url);
+
             return View(model);
         }
 
         [HttpGet]
-        public IActionResult ManageAvailability()
+        public async Task<IActionResult> ManageAvailability()
         {
-            var model = _availabilityService.GetManageAvailabilityViewModel(User.Identity?.Name, User.IsInRole("Admin"));
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/doctor/availability";
+
+            var model = await client.GetFromJsonAsync<ManageAvailabilityViewModel>(url);
+
             return View(model);
         }
 
@@ -85,9 +97,15 @@ namespace MediNote.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult PendingAppointments()
+        public async Task<IActionResult> PendingAppointments()
         {
-            var model = _doctorAppointmentService.GetPendingAppointmentsViewModel(User.Identity?.Name, User.IsInRole("Admin"));
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/doctor/pendingappointments";
+
+            var model = await client.GetFromJsonAsync<PendingAppointmentsViewModel>(url);
+
             return View(model);
         }
 
@@ -106,9 +124,15 @@ namespace MediNote.Web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Reschedule(int id)
+        public async Task<IActionResult> Reschedule(int id)
         {
-            var model = _doctorAppointmentService.GetRescheduleViewModel(id);
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/doctor/reschedule/{id}";
+
+            var model = await client.GetFromJsonAsync<RescheduleAppointmentViewModel>(url);
+
             return View(model);
         }
 
@@ -134,15 +158,26 @@ namespace MediNote.Web.Controllers
 
             var detail = _doctorPortalService.GetAppointmentDetail(model.AppointmentId, User.Identity?.Name, User.IsInRole("Admin"));
             var doctorName = detail?.Appointment.DoctorName ?? User.Identity?.Name ?? string.Empty;
-            if (!_doctorAppointmentService.TryValidateRescheduleSlot(doctorName, model.NewDate!.Value, model.NewTime!.Value, model.AppointmentId, out var errorMessage))
+
+            if (!_doctorAppointmentService.TryValidateRescheduleSlot(
+                doctorName,
+                model.NewDate!.Value,
+                model.NewTime!.Value,
+                model.AppointmentId,
+                out var errorMessage))
             {
                 ModelState.AddModelError(string.Empty, errorMessage);
                 return View(model);
             }
 
-            string statusMessage = _doctorAppointmentService.ConfirmReschedule(model.AppointmentId, model.NewDate!.Value, model.NewTime!.Value);
+            string statusMessage = _doctorAppointmentService.ConfirmReschedule(
+                model.AppointmentId,
+                model.NewDate!.Value,
+                model.NewTime!.Value);
+
             var refreshedModel = _doctorAppointmentService.GetRescheduleViewModel(model.AppointmentId);
             refreshedModel.StatusMessage = statusMessage;
+
             return View(refreshedModel);
         }
 
@@ -162,7 +197,14 @@ namespace MediNote.Web.Controllers
         [HttpPost]
         public IActionResult AddDoctorNote(DoctorAppointmentDetailsViewModel model)
         {
-            _doctorPortalService.AddDoctorNote(model.Detail.Appointment.AppointmentId, User.Identity?.Name ?? string.Empty, model.NewNote, model.FollowUpInstructions, User.IsInRole("Admin"), out var message);
+            _doctorPortalService.AddDoctorNote(
+                model.Detail.Appointment.AppointmentId,
+                User.Identity?.Name ?? string.Empty,
+                model.NewNote,
+                model.FollowUpInstructions,
+                User.IsInRole("Admin"),
+                out var message);
+
             return View("AppointmentDetails", BuildAppointmentDetailsViewModel(model.Detail.Appointment.AppointmentId, message));
         }
 
@@ -189,27 +231,48 @@ namespace MediNote.Web.Controllers
         [HttpPost]
         public IActionResult MarkCompleted(int appointmentId)
         {
-            _doctorPortalService.MarkAppointmentCompleted(appointmentId, User.Identity?.Name ?? string.Empty, User.IsInRole("Admin"), out var message);
+            _doctorPortalService.MarkAppointmentCompleted(
+                appointmentId,
+                User.Identity?.Name ?? string.Empty,
+                User.IsInRole("Admin"),
+                out var message);
+
             return View("AppointmentDetails", BuildAppointmentDetailsViewModel(appointmentId, message));
         }
 
         [HttpPost]
         public IActionResult CancelAppointment(int appointmentId)
         {
-            _doctorPortalService.CancelAppointment(appointmentId, User.Identity?.Name ?? string.Empty, User.IsInRole("Admin"), out var message);
+            _doctorPortalService.CancelAppointment(
+                appointmentId,
+                User.Identity?.Name ?? string.Empty,
+                User.IsInRole("Admin"),
+                out var message);
+
             return View("AppointmentDetails", BuildAppointmentDetailsViewModel(appointmentId, message));
         }
 
         [HttpPost]
         public IActionResult QueueReminder(DoctorAppointmentDetailsViewModel model)
         {
-            _doctorPortalService.QueueReminder(model.Detail.Appointment.AppointmentId, User.Identity?.Name ?? string.Empty, model.ReminderChannel, model.ReminderRecipient, User.IsInRole("Admin"), out var message);
+            _doctorPortalService.QueueReminder(
+                model.Detail.Appointment.AppointmentId,
+                User.Identity?.Name ?? string.Empty,
+                model.ReminderChannel,
+                model.ReminderRecipient,
+                User.IsInRole("Admin"),
+                out var message);
+
             return View("AppointmentDetails", BuildAppointmentDetailsViewModel(model.Detail.Appointment.AppointmentId, message));
         }
 
         private DoctorAppointmentDetailsViewModel BuildAppointmentDetailsViewModel(int appointmentId, string? statusMessage = null)
         {
-            var detail = _doctorPortalService.GetAppointmentDetail(appointmentId, User.Identity?.Name, User.IsInRole("Admin"));
+            var detail = _doctorPortalService.GetAppointmentDetail(
+                appointmentId,
+                User.Identity?.Name,
+                User.IsInRole("Admin"));
+
             if (detail == null)
             {
                 detail = new AppointmentDetailDto();

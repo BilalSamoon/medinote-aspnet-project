@@ -20,7 +20,11 @@ namespace MediNote.Web.Pages.Patient
 
         public IActionResult OnGet(int id)
         {
-            var detail = _patientService.GetAppointmentDetail(id, User.Identity?.Name ?? string.Empty, User.IsInRole("Admin"));
+            var detail = _patientService.GetAppointmentDetail(
+                id,
+                User.Identity?.Name ?? string.Empty,
+                User.IsInRole("Admin"));
+
             if (detail == null)
             {
                 return RedirectToPage("/Patient/Dashboard");

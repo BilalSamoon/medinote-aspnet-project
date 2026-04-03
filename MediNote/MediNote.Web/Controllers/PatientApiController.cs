@@ -11,7 +11,7 @@ namespace MediNote.Web.Controllers
     // API controller for patient-related operations, including dashboard data retrieval, appointment management, and doctor information.
 
     [ApiController]
-    [Authorize(Roles = "Patient,Admin")]
+   
     [Route("api/patient")]
     public class PatientApiController : ControllerBase
     {

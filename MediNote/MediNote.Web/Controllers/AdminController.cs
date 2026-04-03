@@ -1,84 +1,78 @@
-using System;
-using System.Linq;
 using MediNote.Web.Contracts;
-using MediNote.Web.Data;
+using MediNote.Web.Models;
 using MediNote.Web.Services;
 using MediNote.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using System.Net.Http.Json;
 
 namespace MediNote.Web.Controllers
 {
-    //By: Bilal 
-    // Controller responsible for admin-related pages, including dashboard, reports, appointment management, and user account generation. Access to this controller is restricted to users with the "Admin" role.
+    /// <summary>
+    /// Author: Bilal Ahmed Samoon
+    /// Controller responsible for admin-related pages such as dashboard, reports, appointment management, and user account generation.
+    /// </summary>
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly DoctorAppointmentService _doctorAppointmentService;
         private readonly PriorityCalculationService _priorityCalculationService;
-        private readonly AdminReportService _adminReportService;
-        private readonly MediNoteDbContext _context;
         private readonly PatientService _patientService;
         private readonly UserRepository _userRepository;
 
         public AdminController(
             DoctorAppointmentService doctorAppointmentService,
-            ScheduleService scheduleService,
             PriorityCalculationService priorityCalculationService,
-            AdminReportService adminReportService,
-            MediNoteDbContext context,
             PatientService patientService,
-            AvailabilityService availabilityService,
             UserRepository userRepository)
         {
             _doctorAppointmentService = doctorAppointmentService;
             _priorityCalculationService = priorityCalculationService;
-            _adminReportService = adminReportService;
-            _context = context;
             _patientService = patientService;
             _userRepository = userRepository;
         }
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-            var recentAppointments = _context.Appointments
-                .OrderByDescending(a => a.RequestedDate)
-                .ThenBy(a => a.RequestedTime)
-                .Take(6)
-                .ToList()
-                .Select(a => new AppointmentSummaryDto
-                {
-                    AppointmentId = a.AppointmentId,
-                    PatientName = a.PatientName,
-                    DoctorName = a.DoctorName,
-                    RequestedDate = a.RequestedDate,
-                    RequestedTime = a.RequestedTime,
-                    Symptoms = a.Symptoms,
-                    Status = a.Status,
-                    CanCancel = a.Status == "Pending" || a.Status == "Approved",
-                    HasDoctorNotes = _context.DoctorNotes.Any(n => n.AppointmentId == a.AppointmentId),
-                    HasPrescriptions = _context.Prescriptions.Any(p => p.AppointmentId == a.AppointmentId)
-                })
-                .ToList();
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/admin/dashboard";
+
+            var dto = await client.GetFromJsonAsync<AdminDashboardSummaryDto>(url)
+                      ?? new AdminDashboardSummaryDto();
 
             var model = new AdminDashboardViewModel
             {
-                TotalAppointments = _context.Appointments.Count(),
-                PendingAppointments = _context.Appointments.Count(a => a.Status == "Pending"),
-                ApprovedAppointments = _context.Appointments.Count(a => a.Status == "Approved"),
-                CancelledAppointments = _context.Appointments.Count(a => a.Status == "Cancelled"),
-                CompletedAppointments = _context.Appointments.Count(a => a.Status == "Completed"),
-                RecentAppointments = recentAppointments
+                TotalAppointments = dto.TotalAppointments,
+                PendingAppointments = dto.PendingAppointments,
+                ApprovedAppointments = dto.ApprovedAppointments,
+                CancelledAppointments = dto.CancelledAppointments,
+                CompletedAppointments = dto.CompletedAppointments,
+                RecentAppointments = dto.RecentAppointments ?? new List<AppointmentSummaryDto>()
             };
 
             return View(model);
         }
 
-        public IActionResult Reports()
+        public async Task<IActionResult> Reports(string? status = null)
         {
-            ViewBag.TotalAppointments = _adminReportService.GetTotalAppointments(_context.Appointments.Count());
-            ViewBag.PendingAppointments = _adminReportService.GetPendingAppointments(_context.Appointments.Count(a => a.Status == "Pending"));
-            return View();
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/admin/appointments";
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                url += $"?status={status}";
+            }
+
+            var data = await client.GetFromJsonAsync<List<Appointment>>(url)
+                       ?? new List<Appointment>();
+
+            return View(data);
         }
 
         public IActionResult PriorityReport()
@@ -98,13 +92,20 @@ namespace MediNote.Web.Controllers
             return View(priorityItems);
         }
 
-        public IActionResult ManageAppointments(string? status = null)
+        public async Task<IActionResult> ManageAppointments(string? status = null)
         {
-            var appointments = _doctorAppointmentService.GetAppointmentsForManagement(null, true);
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/admin/appointments";
+
             if (!string.IsNullOrWhiteSpace(status))
             {
-                appointments = appointments.Where(a => string.Equals(a.Status, status, StringComparison.OrdinalIgnoreCase)).ToList();
+                url += $"?status={status}";
             }
+
+            var appointments = await client.GetFromJsonAsync<List<Appointment>>(url)
+                               ?? new List<Appointment>();
 
             var model = new AdminManageAppointmentsViewModel
             {
@@ -135,88 +136,84 @@ namespace MediNote.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult ApproveAppointment(int id)
+        public async Task<IActionResult> ApproveAppointment(int id)
         {
-            TempData["AdminStatusMessage"] = _doctorAppointmentService.ApproveAppointment(id);
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/admin/appointments/{id}/approve";
+
+            await client.PostAsync(url, null);
+
+            TempData["AdminStatusMessage"] = "Appointment approved successfully.";
             return RedirectToAction(nameof(ManageAppointments));
         }
 
         [HttpPost]
-        public IActionResult CancelAppointment(int id)
+        public async Task<IActionResult> CancelAppointment(int id)
         {
-            TempData["AdminStatusMessage"] = _doctorAppointmentService.CancelAppointment(id);
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/admin/appointments/{id}/cancel";
+
+            await client.PostAsync(url, null);
+
+            TempData["AdminStatusMessage"] = "Appointment cancelled successfully.";
             return RedirectToAction(nameof(ManageAppointments));
         }
 
         [HttpPost]
-        public IActionResult CreateAppointmentOnBehalf(AdminManageAppointmentsViewModel model)
+        public async Task<IActionResult> CreateAppointmentOnBehalf(AdminManageAppointmentsViewModel model)
         {
-            if (string.IsNullOrWhiteSpace(model.NewAppointment.PatientName) || string.IsNullOrWhiteSpace(model.NewAppointment.DoctorName) || string.IsNullOrWhiteSpace(model.NewAppointment.Symptoms))
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/admin/appointments";
+
+            var request = new BookAppointmentRequest
             {
-                TempData["AdminStatusMessage"] = "Patient name, doctor, and symptoms are required.";
-                return RedirectToAction(nameof(ManageAppointments));
-            }
+                PatientName = model.NewAppointment.PatientName,
+                DoctorName = model.NewAppointment.DoctorName,
+                RequestedDate = model.NewAppointment.RequestedDate,
+                RequestedTime = model.NewAppointment.RequestedTime,
+                Symptoms = model.NewAppointment.Symptoms,
+                ContactRecipient = model.NewAppointment.ContactRecipient,
+                NotificationChannel = model.NewAppointment.NotificationChannel
+            };
 
-            var ok = _patientService.TryBookNewAppointment(
-                model.NewAppointment.PatientName,
-                model.NewAppointment.DoctorName,
-                model.NewAppointment.RequestedDate,
-                model.NewAppointment.RequestedTime,
-                model.NewAppointment.Symptoms,
-                model.NewAppointment.ContactRecipient,
-                model.NewAppointment.NotificationChannel,
-                out _,
-                out var errorMessage);
+            var response = await client.PostAsJsonAsync(url, request);
 
-            TempData["AdminStatusMessage"] = ok
-                ? "Appointment booked successfully on behalf of the patient."
-                : errorMessage;
+            TempData["AdminStatusMessage"] = response.IsSuccessStatusCode
+                ? "Appointment booked successfully."
+                : "Failed to create appointment.";
 
             return RedirectToAction(nameof(ManageAppointments));
         }
 
-        [HttpGet]
         public IActionResult GenerateUser()
         {
             return View(new AdminGenerateUserViewModel());
         }
 
         [HttpPost]
-        public IActionResult GenerateUser(AdminGenerateUserViewModel model)
+        public async Task<IActionResult> GenerateUser(AdminGenerateUserViewModel model)
         {
-            if (!ModelState.IsValid)
+            using var client = new HttpClient();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var url = $"{baseUrl}/api/admin/users/generate";
+
+            var response = await client.PostAsJsonAsync(url, model);
+
+            if (!response.IsSuccessStatusCode)
             {
+                ModelState.AddModelError(string.Empty, "User creation failed.");
                 return View(model);
             }
 
-            var success = _userRepository.RegisterUser(
-                model.FirstName,
-                model.LastName,
-                model.Username,
-                model.Password,
-                model.Role,
-                string.Empty,
-                model.Email,
-                out var errorMessage,
-                out var issuedSecurityId,
-                isAdminAction: true);
-
-            if (!success)
-            {
-                ModelState.AddModelError(string.Empty, errorMessage);
-                return View(model);
-            }
-
-            model.SuccessMessage = $"Account for {model.Role} '{model.FirstName} {model.LastName}' created successfully.";
-            model.IssuedSecurityId = issuedSecurityId;
-
-            // Clear passwords and inputs on success
+            model.SuccessMessage = "User created successfully.";
             ModelState.Clear();
-            model.FirstName = "";
-            model.LastName = "";
-            model.Username = "";
-            model.Password = "";
-            model.Email = "";
 
             return View(model);
         }
