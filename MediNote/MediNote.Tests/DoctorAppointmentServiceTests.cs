@@ -54,12 +54,12 @@ namespace MediNote.Tests
             // Arrange: Create appointments (ID 1 and 2)
             _appointmentRepository.BookAppointment("John Doe", "Dr. Smith", DateTime.Now, "10:00 AM", "Headache");
             _appointmentRepository.BookAppointment("Jane Smith", "Dr. Jones", DateTime.Now, "11:00 AM", "Fever");
-            
+
             // Act
             var result = _doctorAppointmentService.RejectAppointment(2);
 
             // Assert
-            Assert.That(result, Is.EqualTo("Appointment #2 was rejected successfully."));
+            Assert.That(result, Is.EqualTo("Appointment #2 was cancelled successfully."));
         }
 
         [Test]
