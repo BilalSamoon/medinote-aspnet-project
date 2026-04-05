@@ -11,9 +11,16 @@ namespace MediNote.API
             var builder = WebApplication.CreateBuilder(args);
 
             //  Controllers
-            builder.Services.AddControllers();
+            builder.Services.AddControllers()
+                .ConfigureApplicationPartManager(m =>
+                {
+                    var webPart = m.ApplicationParts.FirstOrDefault(p => p.Name == "MediNote.Web");
+                    if (webPart != null)
+                    {
+                        m.ApplicationParts.Remove(webPart);
+                    }
+                });
 
-       
             builder.Services.AddOpenApi();
 
             //  Database

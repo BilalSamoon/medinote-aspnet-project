@@ -87,5 +87,112 @@ namespace MediNote.API.Controllers
             var model = _doctorAppointmentService.GetRescheduleViewModel(id);
             return Ok(model);
         }
+
+        /// <summary>
+        /// Approves a pending appointment.
+        /// </summary>
+        /// <param name="id">The appointment ID.</param>
+        /// <returns>A status message.</returns>
+        [HttpPost("approve/{id}")]
+        public IActionResult ApproveAppointment(int id)
+        {
+            var result = _doctorAppointmentService.ApproveAppointment(id);
+            if (result.Contains("not found")) return NotFound(result);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Rejects a pending appointment.
+        /// </summary>
+        /// <param name="id">The appointment ID.</param>
+        /// <returns>A status message.</returns>
+        [HttpPost("reject/{id}")]
+        public IActionResult RejectAppointment(int id)
+        {
+            var result = _doctorAppointmentService.RejectAppointment(id);
+            if (result.Contains("not found")) return NotFound(result);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Cancels an appointment.
+        /// </summary>
+        /// <param name="id">The appointment ID.</param>
+        /// <returns>A status message.</returns>
+        [HttpPost("cancel/{id}")]
+        public IActionResult CancelAppointment(int id)
+        {
+            var result = _doctorAppointmentService.CancelAppointment(id);
+            if (result.Contains("not found")) return NotFound(result);
+            if (result.Contains("cannot be cancelled")) return BadRequest(result);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Reschedules an appointment.
+        /// </summary>
+        /// <param name="id">The appointment ID.</param>
+        /// <param name="model">The reschedule details.</param>
+        /// <returns>A status message.</returns>
+        [HttpPost("reschedule/{id}")]
+        public IActionResult RescheduleAppointment(int id, [FromBody] RescheduleAppointmentRequest model)
+        {
+            if (id != model.AppointmentId)
+            {
+                return BadRequest("Appointment ID mismatch.");
+            }
+
+            var vm = _doctorAppointmentService.GetRescheduleViewModel(id);
+            if (vm.PatientName == "Unknown Patient")
+            {
+                return NotFound($"Appointment #{id} not found.");
+            }
+
+            if (!TimeSpan.TryParse(model.NewTime, out TimeSpan timeSpan))
+            {
+                return BadRequest("Invalid time format. Please use HH:mm.");
+            }
+
+            if (!_doctorAppointmentService.TryValidateRescheduleSlot(model.DoctorName, model.NewDate, timeSpan, id, out string errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+
+            var result = _doctorAppointmentService.ConfirmReschedule(id, model.NewDate, timeSpan);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Adds doctor availability.
+        /// </summary>
+        /// <param name="availability">The availability model to add.</param>
+        /// <returns>Success message.</returns>
+        [HttpPost("availability")]
+        public IActionResult AddAvailability([FromBody] MediNote.Web.Models.Availability availability)
+        {
+            if (!_availabilityService.IsEndTimeAfterStartTime(availability.StartTime, availability.EndTime))
+            {
+                return BadRequest("End time must be after start time.");
+            }
+
+            if (_availabilityService.HasOverlappingSlot(availability.AvailableDate, availability.StartTime, availability.EndTime, availability.DoctorName))
+            {
+                return BadRequest("This time slot overlaps with an existing availability.");
+            }
+
+            _availabilityService.AddAvailability(availability);
+            return Ok("Availability added successfully.");
+        }
+    }
+
+    /// <summary>
+    /// Request model for rescheduling an appointment.
+    /// </summary>
+    public class RescheduleAppointmentRequest
+    {
+        public int AppointmentId { get; set; }
+        public string DoctorName { get; set; } = string.Empty;
+        public DateTime NewDate { get; set; }
+        public string NewTime { get; set; } = string.Empty;
     }
 }
