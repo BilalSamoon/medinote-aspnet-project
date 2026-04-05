@@ -26,10 +26,14 @@ namespace MediNote.API
             builder.Services.AddScoped<ScheduleService>();
             builder.Services.AddScoped<AvailabilityService>();
             builder.Services.AddScoped<PatientService>();
+            builder.Services.AddScoped<NotificationService>();
             builder.Services.AddScoped<PriorityCalculationService>();
             builder.Services.AddScoped<AdminReportService>();
             builder.Services.AddScoped<AppointmentRepository>();
             builder.Services.AddScoped<UserRepository>();
+
+            builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer();
 
             var app = builder.Build();
 
@@ -41,9 +45,12 @@ namespace MediNote.API
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.MapGet("/", () => "MediNote API is running!");
 
             app.Run();
         }

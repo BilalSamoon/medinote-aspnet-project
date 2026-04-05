@@ -34,7 +34,18 @@ namespace MediNote.API.Controllers
         [HttpGet("all")]
         public IActionResult GetAllAppointments()
         {
-            var data = _context.Appointments.ToList();
+            var data = _context.Appointments
+                .Select(a => new MediNote.Web.Contracts.AppointmentSummaryDto
+                {
+                    AppointmentId = a.AppointmentId,
+                    PatientName = a.PatientName,
+                    DoctorName = a.DoctorName,
+                    RequestedDate = a.RequestedDate,
+                    RequestedTime = a.RequestedTime,
+                    Symptoms = a.Symptoms,
+                    Status = a.Status
+                })
+                .ToList();
             return Ok(data);
         }
     }

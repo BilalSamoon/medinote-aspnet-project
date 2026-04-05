@@ -2,7 +2,7 @@ using MediNote.Web.Services;
 using MediNote.Web.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MediNote.Web.Controllers
+namespace MediNote.API.Controllers
 {
     /// <summary>
     /// Author: Daniel Guillaumont
